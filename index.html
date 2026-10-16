@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FlowForm · 无代码流程图</title>
+<meta name="description" content="填表即可生成漂亮的流程图：自动排版、多套主题、一键导出 PNG / SVG。纯静态，无需安装。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='9' y='2' width='14' height='8' rx='4' fill='%234f46e5'/%3E%3Cpath d='M16 10v5' stroke='%234f46e5' stroke-width='2'/%3E%3Cpath d='M16 15l6 5-6 5-6-5z' fill='%23f59e0b'/%3E%3Cpath d='M16 25v3' stroke='%234f46e5' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#ffffff; --line:#e6e8ec; --line-strong:#d3d7de; --text:#14171c; --muted:#69707d;
+  --soft:#f2f3f5; --accent:#4f46e5; --accent-soft:#e8e9ff; --accent-text:#ffffff; --danger:#dc2626;
+  --canvas:#eceef2; --dot:#d4d8df; --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.07);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1115; --panel:#16191f; --line:#252a33; --line-strong:#343a46; --text:#e8eaee; --muted:#9097a3;
+    --soft:#1e222a; --accent:#8b93ff; --accent-soft:#272c52; --accent-text:#0f1115; --danger:#f87171;
+    --canvas:#0b0d11; --dot:#22262f; --shadow:0 1px 2px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --panel:#16191f; --line:#252a33; --line-strong:#343a46; --text:#e8eaee; --muted:#9097a3;
+  --soft:#1e222a; --accent:#8b93ff; --accent-soft:#272c52; --accent-text:#0f1115; --danger:#f87171;
+  --canvas:#0b0d11; --dot:#22262f; --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,"Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:380px minmax(0,1fr);grid-template-rows:56px minmax(0,1fr);height:100vh}
+header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand b{font-size:16px;letter-spacing:-.01em}
+.brand span{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow{flex:1}
+header select{width:auto;min-width:0}
+.lang{display:flex;border:1px solid var(--line-strong);border-radius:8px;padding:2px;background:var(--soft);cursor:pointer;flex:none}
+.lang span{padding:3px 9px;border-radius:6px;font-size:13px;color:var(--muted);line-height:1.4}
+html[lang="zh-CN"] .lang [data-l="zh"],html[lang="en"] .lang [data-l="en"]{background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-weight:500}
+
+.panel{overflow:auto;border-right:1px solid var(--line);background:var(--panel);padding:18px 16px 48px}
+section+section{margin-top:24px}
+h2{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;display:flex;align-items:center;gap:8px}
+h2 .count{background:var(--soft);color:var(--muted);border-radius:999px;padding:0 7px;font-size:11px;letter-spacing:0}
+.field{display:grid;gap:6px;margin-bottom:12px}
+.field>label{font-size:13px;color:var(--muted)}
+input[type=text],textarea,select{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line-strong);border-radius:8px;padding:7px 10px;width:100%;outline:none;transition:border-color .15s,box-shadow .15s}
+select{appearance:none;-webkit-appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a919c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;cursor:pointer}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{resize:vertical;min-height:96px;line-height:1.6}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--soft);border-radius:9px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;padding:5px 6px;border-radius:7px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-weight:500}
+.themes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sw{border:1px solid var(--line-strong);border-radius:10px;padding:0;overflow:hidden;cursor:pointer;background:var(--panel);text-align:left}
+.sw .pv{height:36px;display:flex;align-items:center;justify-content:center;gap:4px}
+.sw .pv i{width:13px;height:9px;border-radius:3px;display:block}
+.sw .pv i:nth-child(2){transform:rotate(45deg);width:9px;border-radius:1px}
+.sw span{display:block;font-size:12px;padding:3px 8px 4px;border-top:1px solid var(--line)}
+.sw.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+
+.steps{display:grid;gap:10px}
+.step{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel);box-shadow:var(--shadow);display:grid;gap:8px}
+.step.flash{animation:flash .8s ease}
+@keyframes flash{from{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}}
+.step-head{display:flex;align-items:center;gap:6px}
+.badge{width:24px;height:24px;border-radius:7px;background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c);font-weight:600;font-size:12px;display:grid;place-items:center;flex:none}
+.step-head select{width:auto;padding:3px 26px 3px 8px;font-size:13px;border-color:var(--line)}
+.ib{width:28px;height:28px;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
+.ib:hover{background:var(--soft);color:var(--text)}
+.ib:disabled{opacity:.3;pointer-events:none}
+.ib.danger:hover{color:var(--danger)}
+.links{display:grid;gap:6px}
+.links:empty{display:none}
+.link{display:grid;grid-template-columns:14px minmax(0,1.5fr) minmax(0,1fr) 28px;gap:6px;align-items:center}
+.arr{color:var(--muted);font-size:12px;text-align:center}
+.link select,.link input{padding:5px 8px;font-size:13px}
+.link select{padding-right:24px;background-position:right 8px center}
+.add-link{justify-self:start;border:0;background:transparent;color:var(--accent);font-size:13px;padding:2px 4px;cursor:pointer;border-radius:6px}
+.add-link:hover{background:var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{border:1px dashed var(--line-strong);background:transparent;border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.chip:hover{border-style:solid;border-color:var(--c)}
+details{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:14px}
+summary{cursor:pointer;font-size:13px;font-weight:500}
+details p{color:var(--muted);font-size:12px;margin:8px 0}
+.btn{border:1px solid var(--line-strong);background:var(--panel);border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;margin-top:8px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+.hint{color:var(--muted);font-size:12px;margin:10px 2px 0}
+
+.canvas{position:relative;background:var(--canvas) radial-gradient(var(--dot) 1px,transparent 1px) 0 0/18px 18px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.stage{flex:1;overflow:auto;display:flex;padding:72px 28px 28px}
+.stage>svg{margin:auto;flex:none;border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,.10),0 2px 6px rgba(15,23,42,.06)}
+.empty{margin:auto;color:var(--muted);text-align:center}
+.toolbar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none;z-index:2}
+.toolbar>*{pointer-events:auto}
+.group{display:flex;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:3px;gap:2px}
+.tb{border:0;background:transparent;height:30px;min-width:30px;padding:0 10px;border-radius:7px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.tb:hover{background:var(--soft)}
+.tb.primary{background:var(--accent);color:var(--accent-text)}
+.tb.primary:hover{filter:brightness(1.08)}
+.zv{min-width:48px;text-align:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.sep{width:1px;height:18px;background:var(--line);margin:0 2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,16px);opacity:0;background:#111827;color:#fff;padding:8px 14px;border-radius:10px;font-size:13px;transition:.2s;pointer-events:none;z-index:9}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;grid-template-rows:56px 62vh auto;height:auto}
+  .canvas{grid-row:2;border-bottom:1px solid var(--line)}
+  .panel{grid-row:3;border-right:0;overflow:visible}
+  .brand span{display:none}
+  .stage{padding:64px 16px 16px}
+  .toolbar{left:10px;right:10px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect x="8" y="2" width="16" height="8" rx="4" fill="#4f46e5"/><path d="M16 10v4" stroke="#4f46e5" stroke-width="2"/><path d="M16 14l7 5.5-7 5.5-7-5.5z" fill="#f59e0b"/><path d="M16 25v4" stroke="#4f46e5" stroke-width="2"/></svg>
+      <b>FlowForm</b><span data-i18n="tagline"></span>
+    </div>
+    <div class="grow"></div>
+    <select id="tpl" data-i18n-aria="tplAria">
+      <option value="" data-i18n="tplPick"></option>
+      <option value="login" data-i18n="tplLogin"></option>
+      <option value="leave" data-i18n="tplLeave"></option>
+      <option value="order" data-i18n="tplOrder"></option>
+      <option value="blank" data-i18n="tplBlank"></option>
+    </select>
+    <button class="lang" id="lang" title="切换语言 / Switch language"><span data-l="zh">中</span><span data-l="en">EN</span></button>
+  </header>
+
+  <aside class="panel">
+    <section>
+      <h2 data-i18n="settings"></h2>
+      <div class="field"><label for="title" data-i18n="titleLbl"></label><input type="text" id="title" data-i18n-ph="titlePh"></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="dir"></label><div class="seg" id="dirSeg"><button data-v="TB" data-i18n="dirTB"></button><button data-v="LR" data-i18n="dirLR"></button></div></div>
+        <div class="field"><label data-i18n="edges"></label><div class="seg" id="edgeSeg"><button data-v="curve" data-i18n="curve"></button><button data-v="orth" data-i18n="orth"></button></div></div>
+      </div>
+      <div class="field"><label data-i18n="theme"></label><div class="themes" id="themes"></div></div>
+    </section>
+
+    <section>
+      <h2><span data-i18n="steps"></span> <span class="count" id="stepCount">0</span></h2>
+      <div class="steps" id="steps"></div>
+      <div class="chips" id="chips"></div>
+      <p class="hint" data-i18n="hint"></p>
+      <details>
+        <summary data-i18n="bulk"></summary>
+        <p data-i18n="bulkHelp"></p>
+        <textarea id="bulk" data-i18n-ph="bulkPh"></textarea>
+        <button class="btn primary" id="bulkAdd" data-i18n="bulkBtn"></button>
+      </details>
+    </section>
+  </aside>
+
+  <main class="canvas" id="canvas">
+    <div class="toolbar">
+      <div class="group">
+        <button class="tb" id="zOut" data-i18n-title="zoomOut">−</button>
+        <span class="zv" id="zVal">100%</span>
+        <button class="tb" id="zIn" data-i18n-title="zoomIn">+</button>
+        <span class="sep"></span>
+        <button class="tb" id="zFit" data-i18n="fit"></button>
+      </div>
+      <div class="group">
+        <button class="tb" id="share" data-i18n="share" data-i18n-title="shareTip"></button>
+        <span class="sep"></span>
+        <button class="tb" id="exSvg">SVG</button>
+        <button class="tb primary" id="exPng" data-i18n="exPng"></button>
+      </div>
+    </div>
+    <div class="stage" id="stage"></div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   FlowForm — 无代码流程图生成器（单文件，无依赖）
+   ============================================================ */
+const $ = (s, el = document) => el.querySelector(s);
+const FS = 14, LH = 20, SKEW = 14, PAD = 40;
+const SANS = "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif";
+const MONO = "'SF Mono', Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace";
+const STORE = 'flowform.v1';
+
+const TYPE_META = {
+  start:    { color: '#16a34a' },
+  process:  { color: '#2563eb' },
+  decision: { color: '#d97706' },
+  io:       { color: '#7c3aed' },
+  sub:      { color: '#0891b2' },
+  end:      { color: '#e11d48' },
+};
+
+/* ---------- 多语言 / i18n ---------- */
+const I18N = {
+  en: {
+    tagline: 'Beautiful flowcharts from a simple form', tplAria: 'Templates', tplPick: 'Start from a template…',
+    tplLogin: 'User login', tplLeave: 'Leave approval', tplOrder: 'Online order', tplBlank: 'Blank',
+    settings: 'CHART', titleLbl: 'Title (optional)', titlePh: 'e.g. User Login Flow', dir: 'Direction',
+    dirTB: '↓ Vertical', dirLR: '→ Horizontal', edges: 'Edges', curve: 'Curved', orth: 'Elbow', theme: 'Theme',
+    steps: 'STEPS', hint: 'Give a decision two connections labeled “Yes / No”. Links back to an earlier step are drawn as loops.',
+    bulk: 'Bulk add', bulkHelp: 'One step per line, connected in order. Lines ending with ? become decisions; “Start / End” are detected automatically.',
+    bulkPh: 'Start\nFill in the form\nAll fields valid?\nSubmit\nEnd', bulkBtn: 'Add to flow',
+    zoomOut: 'Zoom out', zoomIn: 'Zoom in', fit: 'Fit', share: 'Share link', shareTip: 'Copy a link that contains this chart', exPng: 'Export PNG',
+    t_start: 'Start', t_process: 'Process', t_decision: 'Decision', t_io: 'Input / Output', t_sub: 'Subprocess', t_end: 'End',
+    shape: 'Shape', up: 'Move up', down: 'Move down', del: 'Delete', stepPh: 'Describe this step…', stepAria: 'Step text',
+    linkTo: '+ Connect to…', target: 'Target step', yesNo: 'Yes / No', labelPh: 'Label (optional)', edgeAria: 'Edge label', unlink: 'Remove connection',
+    untitled: '(untitled)', yes: 'Yes', empty: 'No steps yet<br>Click “+ Process” on the left to begin',
+    needOther: 'Add another step first', bulkEmpty: 'Type some steps first, one per line', bulkDone: n => `Added ${n} steps`,
+    svgDone: 'SVG exported', pngDone: 'High‑res PNG exported (3×)', pngFail: 'Export failed — try SVG instead',
+    copied: 'Share link copied', copyPrompt: 'Copy this link:', confirmTpl: 'Loading a template replaces the current chart. Continue?',
+    th_fresh: 'Fresh', th_midnight: 'Midnight', th_morandi: 'Morandi', th_mono: 'Mono', th_sunset: 'Sunset', th_ocean: 'Ocean', th_blueprint: 'Blueprint', th_candy: 'Candy',
+  },
+  zh: {
+    tagline: '填表即可生成漂亮的流程图', tplAria: '模板', tplPick: '从模板开始…',
+    tplLogin: '用户登录', tplLeave: '请假审批', tplOrder: '网购下单', tplBlank: '空白',
+    settings: '图表设置', titleLbl: '标题（可选）', titlePh: '例如：用户登录流程', dir: '方向',
+    dirTB: '↓ 纵向', dirLR: '→ 横向', edges: '连线', curve: '曲线', orth: '直角', theme: '主题',
+    steps: '步骤', hint: '判断节点通常添加两个连接，标签填“是 / 否”。连回前面的步骤会自动画成回环。',
+    bulk: '批量添加', bulkHelp: '每行一个步骤，按顺序自动连接。以 ? 或 ？ 结尾的行识别为判断；“开始 / 结束 / Start / End”自动识别。',
+    bulkPh: '开始\n填写表单\n信息完整？\n提交成功\n结束', bulkBtn: '添加到流程',
+    zoomOut: '缩小', zoomIn: '放大', fit: '适应', share: '分享链接', shareTip: '复制包含当前流程图的链接', exPng: '导出 PNG',
+    t_start: '开始', t_process: '步骤', t_decision: '判断', t_io: '输入/输出', t_sub: '子流程', t_end: '结束',
+    shape: '形状', up: '上移', down: '下移', del: '删除', stepPh: '描述这个步骤…', stepAria: '步骤文字',
+    linkTo: '+ 连接到…', target: '目标步骤', yesNo: '是 / 否', labelPh: '标签（可选）', edgeAria: '连线标签', unlink: '移除连接',
+    untitled: '（未命名）', yes: '是', empty: '还没有步骤<br>在左侧点击“+ 步骤”开始',
+    needOther: '请先添加其他步骤', bulkEmpty: '请先输入步骤，每行一个', bulkDone: n => `已添加 ${n} 个步骤`,
+    svgDone: '已导出 SVG', pngDone: '已导出高清 PNG（3×）', pngFail: '导出失败，请改用 SVG',
+    copied: '分享链接已复制', copyPrompt: '复制下面的链接：', confirmTpl: '载入模板会替换当前流程图，确定吗？',
+    th_fresh: '清新', th_midnight: '午夜', th_morandi: '莫兰迪', th_mono: '极简', th_sunset: '日落', th_ocean: '海洋', th_blueprint: '蓝图', th_candy: '糖果',
+  },
+};
+const LANG_KEY = 'flowform.lang';
+let lang = (() => { try { const l = localStorage.getItem(LANG_KEY); if (I18N[l]) return l; } catch (e) {} return /^zh/i.test(navigator.language || '') ? 'zh' : 'en'; })();
+const t = (k, ...a) => { const v = I18N[lang][k] ?? I18N.en[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
+const typeLabel = k => t('t_' + k);
+function applyI18n() {
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = lang === 'zh' ? 'FlowForm · 无代码流程图' : 'FlowForm · No-code flowcharts';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+}
+
+/* ---------- 主题 ---------- */
+const THEMES = {
+  fresh: { name: '清新', bg: '#F8FAFC', font: SANS, edge: '#94A3B8', edgeW: 1.6, radius: 10, strokeW: 1.5,
+    shadow: { color: '#0F172A', op: .10, blur: 3, dy: 2 }, title: '#0F172A',
+    label: { bg: '#FFFFFF', text: '#475569', stroke: '#E2E8F0' },
+    start: { fill: '#DCFCE7', stroke: '#22C55E', text: '#14532D' },
+    end: { fill: '#FFE4E6', stroke: '#F43F5E', text: '#881337' },
+    process: { fill: '#FFFFFF', stroke: '#60A5FA', text: '#1E3A8A' },
+    decision: { fill: '#FEF3C7', stroke: '#F59E0B', text: '#78350F' },
+    io: { fill: '#EDE9FE', stroke: '#8B5CF6', text: '#4C1D95' },
+    sub: { fill: '#E0F2FE', stroke: '#0EA5E9', text: '#0C4A6E' } },
+  midnight: { name: '午夜', bg: '#0B1020', font: SANS, edge: '#56627A', edgeW: 1.6, radius: 10, strokeW: 1.6,
+    shadow: { color: '#000000', op: .5, blur: 6, dy: 3 }, title: '#F1F5F9',
+    label: { bg: '#0B1020', text: '#CBD5E1', stroke: '#334155' },
+    start: { fill: '#062A28', stroke: '#2DD4BF', text: '#CCFBF1' },
+    end: { fill: '#2A0B1C', stroke: '#F472B6', text: '#FCE7F3' },
+    process: { fill: '#111827', stroke: '#60A5FA', text: '#E0E7FF' },
+    decision: { fill: '#1E1530', stroke: '#C084FC', text: '#F3E8FF' },
+    io: { fill: '#0E1E33', stroke: '#38BDF8', text: '#E0F2FE' },
+    sub: { fill: '#1C1A0E', stroke: '#FACC15', text: '#FEF9C3' } },
+  morandi: { name: '莫兰迪', bg: '#F3EFEA', font: SANS, edge: '#A39B92', edgeW: 1.6, radius: 14, strokeW: 0,
+    shadow: { color: '#5A4A3A', op: .12, blur: 4, dy: 2 }, title: '#3F3A35',
+    label: { bg: '#F3EFEA', text: '#6B625A', stroke: '#DDD5CC' },
+    start: { fill: '#9CAF9F', text: '#FFFFFF' },
+    end: { fill: '#C49A92', text: '#FFFFFF' },
+    process: { fill: '#FFFFFF', stroke: '#E2DAD1', sw: 1, text: '#4A433D' },
+    decision: { fill: '#D9C3A5', text: '#4A3B2A' },
+    io: { fill: '#AFBFCB', text: '#2F3C46' },
+    sub: { fill: '#C7BBD0', text: '#3E3346' } },
+  mono: { name: '极简', bg: '#FFFFFF', font: SANS, edge: '#111111', edgeW: 1.3, radius: 4, strokeW: 1.5, title: '#111111',
+    label: { bg: '#FFFFFF', text: '#111111', stroke: '#FFFFFF' },
+    start: { fill: '#111111', stroke: '#111111', text: '#FFFFFF' },
+    end: { fill: '#111111', stroke: '#111111', text: '#FFFFFF' },
+    process: { fill: '#FFFFFF', stroke: '#111111', text: '#111111' },
+    decision: { fill: '#F4F4F5', stroke: '#111111', text: '#111111' },
+    io: { fill: '#FFFFFF', stroke: '#111111', text: '#111111' },
+    sub: { fill: '#FFFFFF', stroke: '#111111', text: '#111111' } },
+  sunset: { name: '日落', bg: '#FFF8F1', font: SANS, edge: '#E8A27C', edgeW: 1.8, radius: 12, strokeW: 0,
+    shadow: { color: '#9A3412', op: .16, blur: 5, dy: 3 }, title: '#7C2D12',
+    label: { bg: '#FFFFFF', text: '#9A3412', stroke: '#FED7AA' },
+    start: { fill: ['#FB923C', '#EC4899'], text: '#FFFFFF' },
+    end: { fill: ['#A78BFA', '#EC4899'], text: '#FFFFFF' },
+    process: { fill: ['#FFFFFF', '#FFF1E6'], stroke: '#FDBA74', sw: 1.2, text: '#7C2D12' },
+    decision: { fill: ['#FBBF24', '#F97316'], text: '#FFFFFF' },
+    io: { fill: ['#FB7185', '#E11D48'], text: '#FFFFFF' },
+    sub: { fill: ['#F472B6', '#A855F7'], text: '#FFFFFF' } },
+  ocean: { name: '海洋', bg: '#EEF6F9', font: SANS, edge: '#5B8FA8', edgeW: 1.6, radius: 8, strokeW: 0,
+    shadow: { color: '#0C4A6E', op: .14, blur: 4, dy: 2 }, title: '#0C4A6E',
+    label: { bg: '#EEF6F9', text: '#155E75', stroke: '#BAE6FD' },
+    start: { fill: '#0E7490', text: '#FFFFFF' },
+    end: { fill: '#1E3A5F', text: '#FFFFFF' },
+    process: { fill: '#FFFFFF', stroke: '#BAE6FD', sw: 1.2, text: '#0C4A6E' },
+    decision: { fill: '#0891B2', text: '#FFFFFF' },
+    io: { fill: '#7DD3FC', text: '#082F49' },
+    sub: { fill: '#155E75', text: '#FFFFFF' } },
+  blueprint: { name: '蓝图', bg: '#1D3B6E', grid: 'rgba(255,255,255,0.07)', font: MONO, edge: '#BFD7FF', edgeW: 1.4, radius: 2, strokeW: 1.5, title: '#FFFFFF',
+    label: { bg: '#1D3B6E', text: '#E6F0FF', stroke: '#1D3B6E' },
+    start: { fill: 'rgba(126,224,195,0.10)', stroke: '#7EE0C3', text: '#FFFFFF' },
+    end: { fill: 'rgba(255,155,155,0.10)', stroke: '#FF9B9B', text: '#FFFFFF' },
+    process: { fill: 'rgba(255,255,255,0.06)', stroke: '#E6F0FF', text: '#FFFFFF' },
+    decision: { fill: 'rgba(255,209,102,0.10)', stroke: '#FFD166', text: '#FFFFFF' },
+    io: { fill: 'rgba(255,255,255,0.06)', stroke: '#9EC5FF', text: '#FFFFFF' },
+    sub: { fill: 'rgba(255,255,255,0.06)', stroke: '#E6F0FF', text: '#FFFFFF' } },
+  candy: { name: '糖果', bg: '#FFFFFF', font: SANS, edge: '#C4B5FD', edgeW: 2, radius: 16, strokeW: 0, title: '#4C1D95',
+    shadow: { color: '#7C3AED', op: .12, blur: 6, dy: 3 },
+    label: { bg: '#F5F3FF', text: '#6D28D9', stroke: '#F5F3FF' },
+    start: { fill: '#A7F3D0', text: '#064E3B' },
+    end: { fill: '#FBCFE8', text: '#831843' },
+    process: { fill: '#E0E7FF', text: '#312E81' },
+    decision: { fill: '#FDE68A', text: '#78350F' },
+    io: { fill: '#DDD6FE', text: '#4C1D95' },
+    sub: { fill: '#BAE6FD', text: '#0C4A6E' } },
+};
+
+/* ---------- 状态 ---------- */
+const uid = () => 'n' + Math.random().toString(36).slice(2, 8);
+let state;
+
+function tpl(title, defs) {
+  const ids = {}; defs.forEach(d => ids[d[0]] = uid());
+  return {
+    title, dir: state?.dir || 'TB', theme: state?.theme || 'fresh', edge: state?.edge || 'curve',
+    nodes: defs.map(([k, type, text, next = []]) => ({ id: ids[k], type, text, next: next.map(([to, label = '']) => ({ to: ids[to], label })) })),
+  };
+}
+const TEMPLATES = {
+  login: () => tpl('User Login Flow', [
+    ['s', 'start', 'Start', [['in']]],
+    ['in', 'io', 'Enter username and password', [['chk']]],
+    ['chk', 'decision', 'Credentials valid?', [['ok', 'Yes'], ['cnt', 'No']]],
+    ['ok', 'process', 'Log in and open dashboard', [['e']]],
+    ['cnt', 'decision', '5 or more failed attempts?', [['lock', 'Yes'], ['in', 'No']]],
+    ['lock', 'process', 'Lock account for 30 min', [['e']]],
+    ['e', 'end', 'End'],
+  ]),
+  leave: () => tpl('Leave Approval', [
+    ['s', 'start', 'Start', [['sub']]],
+    ['sub', 'io', 'Submit leave request', [['days']]],
+    ['days', 'decision', 'More than 3 days?', [['mgr', 'Yes'], ['lead', 'No']]],
+    ['mgr', 'process', 'Department head reviews', [['pass']]],
+    ['lead', 'process', 'Team lead reviews', [['pass']]],
+    ['pass', 'decision', 'Approved?', [['hr', 'Yes'], ['back', 'No']]],
+    ['hr', 'sub', 'HR records leave', [['e']]],
+    ['back', 'process', 'Return for revision', [['sub']]],
+    ['e', 'end', 'End'],
+  ]),
+  order: () => tpl('Online Order', [
+    ['s', 'start', 'Start', [['browse']]],
+    ['browse', 'process', 'Browse products', [['cart']]],
+    ['cart', 'process', 'Add to cart', [['stock']]],
+    ['stock', 'decision', 'In stock?', [['pay', 'Yes'], ['oos', 'No']]],
+    ['pay', 'io', 'Place order and pay', [['paid']]],
+    ['oos', 'process', 'Show out-of-stock notice', [['e']]],
+    ['paid', 'decision', 'Payment succeeded?', [['ship', 'Yes'], ['cancel', 'No']]],
+    ['ship', 'sub', 'Ship from warehouse', [['e']]],
+    ['cancel', 'process', 'Cancel order', [['e']]],
+    ['e', 'end', 'End'],
+  ]),
+  blank: () => tpl('', [['s', 'start', 'Start']]),
+};
+
+function sanitize(s) {
+  if (!s || !Array.isArray(s.nodes)) return null;
+  return {
+    title: String(s.title ?? ''), dir: s.dir === 'LR' ? 'LR' : 'TB',
+    theme: THEMES[s.theme] ? s.theme : 'fresh', edge: s.edge === 'orth' ? 'orth' : 'curve',
+    nodes: s.nodes.filter(n => n && typeof n.id === 'string').map(n => ({
+      id: n.id, type: TYPE_META[n.type] ? n.type : 'process', text: String(n.text ?? ''),
+      next: Array.isArray(n.next) ? n.next.filter(e => e && typeof e.to === 'string').map(e => ({ to: e.to, label: String(e.label ?? '') })) : [],
+    })),
+  };
+}
+const b64e = s => btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)));
+
+function loadInitial() {
+  const m = location.hash.match(/^#d=(.+)$/);
+  if (m) { try { const s = sanitize(JSON.parse(b64d(m[1]))); if (s) { history.replaceState(null, '', location.pathname + location.search); return s; } } catch (e) {} }
+  try { const s = sanitize(JSON.parse(localStorage.getItem(STORE))); if (s) return s; } catch (e) {}
+  return TEMPLATES.login();
+}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+/* ---------- 文本测量与换行 ---------- */
+const mctx = document.createElement('canvas').getContext('2d');
+const CJK = '⺀-鿿豈-﫿＀-￯　-〿';
+const TOK = new RegExp(`[${CJK}]|[^\\s${CJK}]+|\\s+`, 'g');
+function wrap(text, font, maxW) {
+  mctx.font = font;
+  const lines = []; let cur = '';
+  for (const tok of (text.match(TOK) || [''])) {
+    if (/^\s+$/.test(tok)) { if (cur) cur += ' '; continue; }
+    const t = cur + tok;
+    if (!cur.trim() || mctx.measureText(t).width <= maxW) cur = t;
+    else { lines.push(cur.trimEnd()); cur = tok; }
+  }
+  lines.push(cur.trimEnd());
+  return lines;
+}
+function sizeNode(n, th) {
+  const font = `500 ${FS}px ${th.font}`;
+  n.lines = wrap(n.text, font, n.type === 'decision' ? 120 : 168);
+  mctx.font = font;
+  const tw = Math.max(24, ...n.lines.map(l => mctx.measureText(l).width));
+  const th_ = n.lines.length * LH;
+  switch (n.type) {
+    case 'start': case 'end': n.h = th_ + 22; n.w = Math.max(tw + n.h + 10, 104); break;
+    case 'decision': { const H = Math.max(th_ * 1.6 + 40, 72); n.h = H; n.w = Math.max(tw / (1 - th_ / H) + 30, H * 1.35); break; }
+    case 'io': n.h = Math.max(th_ + 26, 46); n.w = Math.max(tw + 40 + SKEW * 2, 130); break;
+    case 'sub': n.h = Math.max(th_ + 26, 46); n.w = Math.max(tw + 56, 130); break;
+    default: n.h = Math.max(th_ + 26, 46); n.w = Math.max(tw + 40, 120);
+  }
+}
+
+/* ---------- 自动布局（分层 Sugiyama 简化版） ---------- */
+function layout(G, dir) {
+  const LR = dir === 'LR';
+  const N = G.nodes, E = G.edges;
+  const RANK_SEP = LR ? 84 : 64;
+  N.forEach(n => { n.lw = LR ? n.h : n.w; n.lh = LR ? n.w : n.h; });
+
+  // 1. 找回边（环）
+  const outE = new Map(N.map(n => [n.id, []]));
+  const indeg = new Map(N.map(n => [n.id, 0]));
+  E.forEach((e, i) => {
+    e.i = i; e.back = false; e.self = e.from === e.to; e.chain = [];
+    if (!e.self) { outE.get(e.from).push(e); indeg.set(e.to, indeg.get(e.to) + 1); }
+  });
+  const roots = [...N].sort((a, b) =>
+    (a.type === 'start' ? 0 : 1) - (b.type === 'start' ? 0 : 1) ||
+    (indeg.get(a.id) ? 1 : 0) - (indeg.get(b.id) ? 1 : 0) || a.idx - b.idx);
+  const st = new Map();
+  const dfs = u => {
+    st.set(u, 1);
+    for (const e of outE.get(u)) { const s = st.get(e.to) || 0; if (s === 1) e.back = true; else if (s === 0) dfs(e.to); }
+    st.set(u, 2);
+  };
+  roots.forEach(n => { if (!st.get(n.id)) dfs(n.id); });
+  const fwd = E.filter(e => !e.self && !e.back);
+
+  // 2. 分层（最长路径）
+  const rank = new Map(N.map(n => [n.id, 0]));
+  const deg = new Map(N.map(n => [n.id, 0]));
+  const fo = new Map(N.map(n => [n.id, []]));
+  fwd.forEach(e => { deg.set(e.to, deg.get(e.to) + 1); fo.get(e.from).push(e); });
+  const q = N.filter(n => !deg.get(n.id)).map(n => n.id);
+  while (q.length) {
+    const u = q.shift();
+    for (const e of fo.get(u)) {
+      rank.set(e.to, Math.max(rank.get(e.to), rank.get(u) + 1));
+      deg.set(e.to, deg.get(e.to) - 1); if (!deg.get(e.to)) q.push(e.to);
+    }
+  }
+  const hasIn = new Set(fwd.map(e => e.to));
+  N.forEach(n => { if (!hasIn.has(n.id) && n.type !== 'start' && fo.get(n.id).length) rank.set(n.id, Math.max(0, Math.min(...fo.get(n.id).map(e => rank.get(e.to))) - 1)); });
+  const used = [...new Set(rank.values())].sort((a, b) => a - b);
+  const remap = new Map(used.map((r, i) => [r, i]));
+  N.forEach(n => rank.set(n.id, remap.get(rank.get(n.id))));
+
+  // 3. 虚拟节点
+  const V = new Map();
+  N.forEach(n => V.set(n.id, { id: n.id, node: n, w: n.lw, h: n.lh, rank: rank.get(n.id), up: [], down: [], x: 0 }));
+  const link = (a, b) => { a.down.push(b); b.up.push(a); };
+  fwd.forEach(e => {
+    let p = V.get(e.from); const t = V.get(e.to);
+    for (let r = p.rank + 1; r < t.rank; r++) {
+      const d = { id: `d${e.i}_${r}`, dummy: true, w: 12, h: 0, rank: r, up: [], down: [], x: 0 };
+      V.set(d.id, d); e.chain.push(d); link(p, d); p = d;
+    }
+    link(p, t);
+  });
+  const maxR = Math.max(0, ...[...V.values()].map(v => v.rank));
+  let layers = Array.from({ length: maxR + 1 }, () => []);
+  const seen = new Set();
+  const place = v => { if (seen.has(v.id)) return; seen.add(v.id); layers[v.rank].push(v); v.down.forEach(place); };
+  roots.forEach(n => place(V.get(n.id)));
+  V.forEach(place);
+
+  // 4. 减少交叉（重心法）
+  const setOrd = () => layers.forEach(L => L.forEach((v, i) => v.order = i));
+  setOrd();
+  const cross = () => {
+    let c = 0;
+    for (let r = 0; r < maxR; r++) {
+      const es = []; layers[r].forEach(v => v.down.forEach(w => es.push([v.order, w.order])));
+      for (let i = 0; i < es.length; i++) for (let j = i + 1; j < es.length; j++)
+        if ((es[i][0] - es[j][0]) * (es[i][1] - es[j][1]) < 0) c++;
+    }
+    return c;
+  };
+  let best = cross(), bestL = layers.map(L => L.slice());
+  for (let it = 0; it < 10 && best > 0; it++) {
+    const down = it % 2 === 0;
+    const rs = [...Array(maxR + 1).keys()]; if (!down) rs.reverse();
+    for (const r of rs) {
+      if ((down && r === 0) || (!down && r === maxR)) continue;
+      const L = layers[r];
+      const bc = new Map(L.map(v => { const nb = down ? v.up : v.down; return [v, nb.length ? nb.reduce((s, w) => s + w.order, 0) / nb.length : v.order]; }));
+      L.sort((a, b) => bc.get(a) - bc.get(b) || a.order - b.order);
+      L.forEach((v, i) => v.order = i);
+    }
+    const c = cross(); if (c < best) { best = c; bestL = layers.map(L => L.slice()); }
+  }
+  layers = bestL; setOrd();
+
+  // 5. 横向坐标（带间距约束的保序回归）
+  const sep = (a, b) => (a.w + b.w) / 2 + (a.dummy && b.dummy ? 10 : (a.dummy || b.dummy) ? 22 : (LR ? 30 : 40));
+  layers.forEach(L => { let x = 0; L.forEach((v, i) => { if (i) x += sep(L[i - 1], v); v.x = x; }); L.forEach(v => v.x -= x / 2); });
+  const solve = (L, des) => {
+    const off = [0]; for (let i = 1; i < L.length; i++) off[i] = off[i - 1] + sep(L[i - 1], L[i]);
+    const blocks = [];
+    L.forEach((v, i) => {
+      const wt = v.dummy ? 2 : 1;
+      blocks.push({ s: wt * (des[i] - off[i]), w: wt, n: 1 });
+      while (blocks.length > 1) {
+        const b = blocks[blocks.length - 1], a = blocks[blocks.length - 2];
+        if (a.s / a.w > b.s / b.w) { a.s += b.s; a.w += b.w; a.n += b.n; blocks.pop(); } else break;
+      }
+    });
+    let i = 0; blocks.forEach(b => { const m = b.s / b.w; for (let k = 0; k < b.n; k++, i++) L[i].x = m + off[i]; });
+  };
+  const avg = a => a.reduce((s, v) => s + v.x, 0) / a.length;
+  for (let it = 0; it < 18; it++) {
+    const mode = it >= 14 ? 'both' : it % 2 ? 'up' : 'down';
+    const rs = [...Array(maxR + 1).keys()]; if (mode === 'up') rs.reverse();
+    rs.forEach(r => {
+      const L = layers[r];
+      solve(L, L.map(v => { const nb = mode === 'down' ? v.up : mode === 'up' ? v.down : v.up.concat(v.down); return nb.length ? avg(nb) : v.x; }));
+    });
+  }
+
+  // 一对一的上下游尽量对齐成直线，消除细小的弯折
+  for (let pass = 0; pass < 2; pass++) for (let r = 1; r <= maxR; r++) {
+    const L = layers[r];
+    L.forEach((v, i) => {
+      if (v.up.length !== 1 || v.up[0].down.length !== 1) return;
+      const t = v.up[0].x;
+      const lo = i > 0 ? L[i - 1].x + sep(L[i - 1], v) : -Infinity;
+      const hi = i < L.length - 1 ? L[i + 1].x - sep(v, L[i + 1]) : Infinity;
+      if (t >= lo && t <= hi) v.x = t;
+    });
+  }
+
+  // 6. 纵向坐标
+  const bandH = layers.map(L => Math.max(8, ...L.map(v => v.h)));
+  const top = []; let y = 0;
+  bandH.forEach((h, r) => { top[r] = y; y += h + RANK_SEP; });
+  const gap = r => top[r] + bandH[r] + RANK_SEP / 2;
+  V.forEach(v => v.y = top[v.rank] + bandH[v.rank] / 2);
+
+  // 7. 连线路由
+  const anchor = (v, side) => {
+    let ins = 0;
+    if (v.node.type === 'io' && ((!LR && (side === 'left' || side === 'right')) || (LR && (side === 'top' || side === 'bottom')))) ins = SKEW / 2;
+    switch (side) {
+      case 'top': return { x: v.x, y: v.y - v.h / 2 + ins };
+      case 'bottom': return { x: v.x, y: v.y + v.h / 2 - ins };
+      case 'left': return { x: v.x - v.w / 2 + ins, y: v.y };
+      default: return { x: v.x + v.w / 2 - ins, y: v.y };
+    }
+  };
+  const realNb = (v, d) => { const L = layers[v.rank]; for (let i = v.order + d; i >= 0 && i < L.length; i += d) if (!L[i].dummy) return L[i]; return null; };
+  const usedSide = new Map(N.map(n => [n.id, new Set()]));
+  const routes = [];
+  fwd.forEach(e => {
+    const u = V.get(e.from), t = V.get(e.to), first = e.chain[0] || t;
+    let side = 'bottom';
+    if (u.node.type === 'decision') {
+      const dx = first.x - u.x;
+      if (dx < -u.w / 4) side = 'left'; else if (dx > u.w / 4) side = 'right';
+      // 目标若还没越过菱形侧顶点，就从底部出线，避免出现小折线
+      if (side !== 'bottom' && Math.abs(dx) < u.w / 2) side = 'bottom';
+    }
+    usedSide.get(u.id).add(side); usedSide.get(t.id).add('top');
+    const P = anchor(u, side), pts = [P], g0 = gap(u.rank);
+    if (side === 'bottom') pts.push({ x: P.x, y: g0 });
+    else {
+      const d = side === 'right' ? 1 : -1; let X = first.x;
+      const nb = realNb(u, d);
+      if (nb) { const lim = nb.x - d * (nb.w / 2 + 12); X = d > 0 ? Math.min(X, lim) : Math.max(X, lim); }
+      X = d > 0 ? Math.max(X, P.x) : Math.min(X, P.x);
+      pts.push({ x: X, y: P.y }, { x: X, y: g0 });
+    }
+    e.chain.forEach(dm => pts.push({ x: dm.x, y: gap(dm.rank - 1) }, { x: dm.x, y: gap(dm.rank) }));
+    const Q = anchor(t, 'top');
+    pts.push({ x: Q.x, y: gap(t.rank - 1) }, Q);
+    routes.push({ e, pts });
+  });
+  const loops = { right: 0, left: 0 };
+  E.filter(e => e.back).forEach(e => {
+    const u = V.get(e.from), t = V.get(e.to);
+    const lo = Math.min(u.rank, t.rank), hi = Math.max(u.rank, t.rank);
+    const free = (v, s) => !realNb(v, s === 'right' ? 1 : -1) && !usedSide.get(v.id).has(s);
+    const side = ['right', 'left'].find(s => free(u, s) && free(t, s)) || 'right';
+    usedSide.get(u.id).add(side); usedSide.get(t.id).add(side);
+    let ext = side === 'right' ? -Infinity : Infinity;
+    for (let r = lo; r <= hi; r++) layers[r].forEach(v => { ext = side === 'right' ? Math.max(ext, v.x + v.w / 2) : Math.min(ext, v.x - v.w / 2); });
+    const X = ext + (side === 'right' ? 1 : -1) * (28 + 16 * loops[side]++);
+    const P = anchor(u, side), Q = anchor(t, side);
+    routes.push({ e, pts: [P, { x: X, y: P.y }, { x: X, y: Q.y }, Q] });
+  });
+  E.filter(e => e.self).forEach(e => {
+    const v = V.get(e.from), ax = v.x + (v.node.type === 'decision' ? v.w / 4 : v.w / 2), X = v.x + v.w / 2 + 26;
+    const y1 = v.y - v.h / 4, y2 = v.y + v.h / 4;
+    routes.push({ e, pts: [{ x: ax, y: y1 }, { x: X, y: y1 }, { x: X, y: y2 }, { x: ax, y: y2 }] });
+  });
+
+  // 8. 坐标变换（横向布局时交换 x / y）
+  const T = p => LR ? { x: p.y, y: p.x } : { x: p.x, y: p.y };
+  N.forEach(n => { const c = T(V.get(n.id)); n.cx = c.x; n.cy = c.y; });
+  routes.forEach(r => r.pts = simplify(r.pts.map(T)));
+  return routes;
+}
+
+function simplify(pts) {
+  const out = [];
+  for (const p of pts) {
+    const l = out[out.length - 1];
+    if (l && Math.abs(l.x - p.x) < .5 && Math.abs(l.y - p.y) < .5) continue;
+    out.push(p);
+  }
+  for (let i = out.length - 2; i > 0; i--) {
+    const a = out[i - 1], b = out[i], c = out[i + 1];
+    const cr = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+    const dot = (b.x - a.x) * (c.x - b.x) + (b.y - a.y) * (c.y - b.y);
+    if (Math.abs(cr) < .5 && dot > 0) out.splice(i, 1);
+  }
+  return out;
+}
+const segLen = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+function pointAt(pts, d) {
+  for (let i = 1; i < pts.length; i++) {
+    const l = segLen(pts[i - 1], pts[i]);
+    if (d <= l || i === pts.length - 1) { const t = l ? Math.min(1, d / l) : 0; return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * t, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * t }; }
+    d -= l;
+  }
+  return pts[0];
+}
+
+/* ---------- SVG 绘制 ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const f = v => Math.round(v * 10) / 10;
+
+function edgePath(pts, style) {
+  // 缩短末端，让箭头尖正好落在节点边框上
+  pts = pts.map(p => ({ ...p }));
+  const n = pts.length, a = pts[n - 2], b = pts[n - 1], L = segLen(a, b);
+  if (L > 6) { b.x -= (b.x - a.x) / L * 4; b.y -= (b.y - a.y) / L * 4; }
+  const R = style === 'curve' ? 1e9 : 8;
+  const segs = n - 1;
+  const budget = (s, atStart) => { const l = segLen(pts[s], pts[s + 1]); if (segs === 1) return 0; if (s === 0) return l; if (s === segs - 1) return Math.max(0, l - 10); return l / 2; };
+  let d = `M${f(pts[0].x)} ${f(pts[0].y)}`;
+  for (let i = 1; i < n - 1; i++) {
+    const p0 = pts[i - 1], p1 = pts[i], p2 = pts[i + 1];
+    const l1 = segLen(p0, p1), l2 = segLen(p1, p2);
+    const r = Math.min(R, budget(i - 1), budget(i));
+    const A = { x: p1.x - (p1.x - p0.x) / l1 * r, y: p1.y - (p1.y - p0.y) / l1 * r };
+    const B = { x: p1.x + (p2.x - p1.x) / l2 * r, y: p1.y + (p2.y - p1.y) / l2 * r };
+    d += ` L${f(A.x)} ${f(A.y)} Q${f(p1.x)} ${f(p1.y)} ${f(B.x)} ${f(B.y)}`;
+  }
+  return d + ` L${f(pts[n - 1].x)} ${f(pts[n - 1].y)}`;
+}
+
+function nodeSvg(n, th) {
+  const s = th[n.type] || th.process;
+  const x = n.cx - n.w / 2, y = n.cy - n.h / 2, w = n.w, h = n.h, cx = n.cx, cy = n.cy;
+  const fill = Array.isArray(s.fill) ? `url(#ffg-${n.type})` : s.fill;
+  const sw = s.stroke ? (s.sw ?? th.strokeW ?? 1.5) : 0;
+  const st = sw ? ` stroke="${s.stroke}" stroke-width="${sw}"` : '';
+  const flt = th.shadow ? ' filter="url(#ffsh)"' : '';
+  let shape;
+  switch (n.type) {
+    case 'start': case 'end':
+      shape = `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" rx="${f(h / 2)}" fill="${fill}"${st}${flt}/>`; break;
+    case 'decision':
+      shape = `<polygon points="${f(cx)},${f(y)} ${f(x + w)},${f(cy)} ${f(cx)},${f(y + h)} ${f(x)},${f(cy)}" fill="${fill}"${st} stroke-linejoin="round"${flt}/>`; break;
+    case 'io':
+      shape = `<polygon points="${f(x + SKEW)},${f(y)} ${f(x + w)},${f(y)} ${f(x + w - SKEW)},${f(y + h)} ${f(x)},${f(y + h)}" fill="${fill}"${st} stroke-linejoin="round"${flt}/>`; break;
+    case 'sub': {
+      const lc = s.stroke || s.text;
+      shape = `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" rx="${th.radius}" fill="${fill}"${st}${flt}/>` +
+        `<path d="M${f(x + 12)} ${f(y)} V${f(y + h)} M${f(x + w - 12)} ${f(y)} V${f(y + h)}" stroke="${lc}" stroke-opacity="0.45" stroke-width="1.2"/>`; break;
+    }
+    default:
+      shape = `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" rx="${th.radius}" fill="${fill}"${st}${flt}/>`;
+  }
+  const y0 = cy - (n.lines.length - 1) * LH / 2;
+  const tx = n.lines.map((l, i) => `<tspan x="${f(cx)}" y="${f(y0 + i * LH)}">${esc(l)}</tspan>`).join('');
+  return `<g>${shape}<text font-size="${FS}" font-weight="500" fill="${s.text}" text-anchor="middle" dominant-baseline="central">${tx}</text></g>`;
+}
+
+function buildGraph() {
+  const nodes = state.nodes.map((n, i) => ({ id: n.id, type: n.type, text: n.text.trim() || t('untitled'), idx: i }));
+  const ids = new Set(nodes.map(n => n.id));
+  const edges = [];
+  state.nodes.forEach(n => n.next.forEach(e => { if (ids.has(e.to)) edges.push({ from: n.id, to: e.to, label: e.label.trim() }); }));
+  return { nodes, edges };
+}
+
+function buildSvg() {
+  const th = THEMES[state.theme] || THEMES.fresh;
+  const G = buildGraph();
+  if (!G.nodes.length) return null;
+  G.nodes.forEach(n => sizeNode(n, th));
+  const routes = layout(G, state.dir);
+
+  mctx.font = `500 12px ${th.font}`;
+  const labels = routes.filter(r => r.e.label).map(r => {
+    const first = segLen(r.pts[0], r.pts[1]);
+    let tot = 0; for (let i = 1; i < r.pts.length; i++) tot += segLen(r.pts[i - 1], r.pts[i]);
+    const p = pointAt(r.pts, Math.min(Math.max(first / 2, 14), tot / 2));
+    return { x: p.x, y: p.y, w: mctx.measureText(r.e.label).width + 14, h: 20, text: r.e.label };
+  });
+
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const grow = (a, b, c, d) => { x0 = Math.min(x0, a); y0 = Math.min(y0, b); x1 = Math.max(x1, c); y1 = Math.max(y1, d); };
+  G.nodes.forEach(n => grow(n.cx - n.w / 2, n.cy - n.h / 2, n.cx + n.w / 2, n.cy + n.h / 2));
+  routes.forEach(r => r.pts.forEach(p => grow(p.x - 6, p.y - 6, p.x + 6, p.y + 6)));
+  labels.forEach(l => grow(l.x - l.w / 2, l.y - l.h / 2, l.x + l.w / 2, l.y + l.h / 2));
+
+  const title = state.title.trim();
+  mctx.font = `600 20px ${th.font}`;
+  const titleW = title ? mctx.measureText(title).width : 0;
+  const titleH = title ? 50 : 0;
+  const cw = x1 - x0, ch = y1 - y0;
+  const W = Math.ceil(Math.max(cw, titleW) + PAD * 2), H = Math.ceil(ch + PAD * 2 + titleH);
+  const ox = (W - cw) / 2 - x0, oy = PAD + titleH - y0;
+
+  const defs = [];
+  defs.push(`<marker id="ffa" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1.5 L9 5 L1 8.5 z" fill="${th.edge}"/></marker>`);
+  if (th.shadow) defs.push(`<filter id="ffsh" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="${th.shadow.dy}" stdDeviation="${th.shadow.blur}" flood-color="${th.shadow.color}" flood-opacity="${th.shadow.op}"/></filter>`);
+  Object.keys(TYPE_META).forEach(k => { const s = th[k]; if (Array.isArray(s.fill)) defs.push(`<linearGradient id="ffg-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${s.fill[0]}"/><stop offset="1" stop-color="${s.fill[1]}"/></linearGradient>`); });
+  if (th.grid) defs.push(`<pattern id="ffgrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="${th.grid}" stroke-width="1"/></pattern>`);
+
+  const parts = [];
+  parts.push(`<rect width="${W}" height="${H}" fill="${th.bg}"/>`);
+  if (th.grid) parts.push(`<rect width="${W}" height="${H}" fill="url(#ffgrid)"/>`);
+  if (title) parts.push(`<text x="${W / 2}" y="${PAD + 8}" font-size="20" font-weight="600" fill="${th.title}" text-anchor="middle" dominant-baseline="central">${esc(title)}</text>`);
+  parts.push(`<g transform="translate(${f(ox)} ${f(oy)})">`);
+  parts.push(`<g fill="none" stroke="${th.edge}" stroke-width="${th.edgeW}" stroke-linecap="round" stroke-linejoin="round">` +
+    routes.map(r => `<path d="${edgePath(r.pts, state.edge)}" marker-end="url(#ffa)"/>`).join('') + `</g>`);
+  parts.push(G.nodes.map(n => nodeSvg(n, th)).join(''));
+  parts.push(labels.map(l => `<g><rect x="${f(l.x - l.w / 2)}" y="${f(l.y - l.h / 2)}" width="${f(l.w)}" height="${l.h}" rx="10" fill="${th.label.bg}" stroke="${th.label.stroke}"/><text x="${f(l.x)}" y="${f(l.y)}" font-size="12" font-weight="500" fill="${th.label.text}" text-anchor="middle" dominant-baseline="central">${esc(l.text)}</text></g>`).join(''));
+  parts.push(`</g>`);
+
+  return { W, H, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="${esc(th.font)}"><defs>${defs.join('')}</defs>${parts.join('')}</svg>` };
+}
+
+/* ---------- 画布 & 缩放 ---------- */
+const stage = $('#stage');
+let current = null, zoom = 1, fitMode = true;
+function render() {
+  current = buildSvg();
+  if (!current) { stage.innerHTML = `<div class="empty">${t('empty')}</div>`; }
+  else { stage.innerHTML = current.svg; applyZoom(); }
+  save();
+}
+let raf = 0;
+const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+function applyZoom() {
+  const svg = stage.querySelector('svg'); if (!svg || !current) return;
+  if (fitMode) {
+    const cs = getComputedStyle(stage);
+    const aw = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const ah = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    zoom = Math.max(.1, Math.min(aw / current.W, ah / current.H, 1.25));
+  }
+  svg.style.width = current.W * zoom + 'px';
+  svg.style.height = current.H * zoom + 'px';
+  $('#zVal').textContent = Math.round(zoom * 100) + '%';
+}
+const setZoom = z => { fitMode = false; zoom = Math.min(4, Math.max(.1, z)); applyZoom(); };
+$('#zIn').onclick = () => setZoom(zoom * 1.2);
+$('#zOut').onclick = () => setZoom(zoom / 1.2);
+$('#zFit').onclick = () => { fitMode = true; applyZoom(); };
+new ResizeObserver(() => fitMode && applyZoom()).observe(stage);
+
+/* ---------- 导出 ---------- */
+const fileBase = () => (state.title.trim() || 'flowchart').replace(/[\\/:*?"<>|\s]+/g, '_');
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+$('#exSvg').onclick = () => { if (!current) return; download(new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + current.svg], { type: 'image/svg+xml' }), fileBase() + '.svg'); toast(t('svgDone')); };
+$('#exPng').onclick = () => {
+  if (!current) return;
+  const k = 3, img = new Image(), { W, H, svg } = current;
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = W * k; c.height = H * k;
+    c.getContext('2d').drawImage(img, 0, 0, W * k, H * k); URL.revokeObjectURL(url);
+    c.toBlob(b => { download(b, fileBase() + '.png'); toast(t('pngDone')); }, 'image/png');
+  };
+  img.onerror = () => toast(t('pngFail'));
+  img.src = url;
+};
+$('#share').onclick = async () => {
+  const link = location.href.split('#')[0] + '#d=' + b64e(JSON.stringify(state));
+  try { await navigator.clipboard.writeText(link); toast(t('copied')); }
+  catch (e) { prompt(t('copyPrompt'), link); }
+};
+let tt;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 1800); }
+
+/* ---------- 左侧表单 ---------- */
+const ICON = {
+  up: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V3M3.5 6.5L7 3l3.5 3.5"/></svg>',
+  down: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M3.5 7.5L7 11l3.5-3.5"/></svg>',
+  del: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2.5 4h9M5.5 4V2.5h3V4M3.8 4l.6 7.5h5.2l.6-7.5"/></svg>',
+  x: '<svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg>',
+};
+const findNode = id => state.nodes.find(n => n.id === id);
+const short = s => { s = s.trim() || t('untitled'); const max = /[\u2E80-\u9FFF]/.test(s) ? 14 : 24; return s.length > max ? s.slice(0, max) + '…' : s; };
+const optLabel = (m, i) => `${i + 1}. ${short(m.text)}`;
+const targetOptions = (selfId, sel) => state.nodes.map((m, i) => m.id === selfId ? '' : `<option value="${m.id}"${m.id === sel ? ' selected' : ''}>${esc(optLabel(m, i))}</option>`).join('');
+
+function renderSteps() {
+  const list = $('#steps'); list.innerHTML = '';
+  state.nodes.forEach((n, i) => {
+    const card = document.createElement('div'); card.className = 'step'; card.dataset.id = n.id;
+    card.innerHTML = `
+      <div class="step-head">
+        <span class="badge" style="--c:${TYPE_META[n.type].color}">${i + 1}</span>
+        <select class="type" aria-label="${t('shape')}">${Object.keys(TYPE_META).map(k => `<option value="${k}"${k === n.type ? ' selected' : ''}>${typeLabel(k)}</option>`).join('')}</select>
+        <span class="grow"></span>
+        <button class="ib" data-act="up" title="${t('up')}"${i === 0 ? ' disabled' : ''}>${ICON.up}</button>
+        <button class="ib" data-act="down" title="${t('down')}"${i === state.nodes.length - 1 ? ' disabled' : ''}>${ICON.down}</button>
+        <button class="ib danger" data-act="del" title="${t('del')}">${ICON.del}</button>
+      </div>
+      <input type="text" class="txt" placeholder="${t('stepPh')}" aria-label="${t('stepAria')}">
+      <div class="links"></div>
+      <button class="add-link" data-act="link">${t('linkTo')}</button>`;
+    card.querySelector('.txt').value = n.text;
+    const links = card.querySelector('.links');
+    n.next.forEach((e, j) => {
+      const row = document.createElement('div'); row.className = 'link'; row.dataset.j = j;
+      row.innerHTML = `<span class="arr">→</span><select class="to" aria-label="${t('target')}">${targetOptions(n.id, e.to)}</select><input type="text" class="lbl" placeholder="${n.type === 'decision' ? t('yesNo') : t('labelPh')}" aria-label="${t('edgeAria')}"><button class="ib" data-act="unlink" title="${t('unlink')}">${ICON.x}</button>`;
+      row.querySelector('.lbl').value = e.label;
+      links.appendChild(row);
+    });
+    list.appendChild(card);
+  });
+  $('#stepCount').textContent = state.nodes.length;
+}
+function refreshOptionLabels(n) {
+  const i = state.nodes.indexOf(n);
+  document.querySelectorAll(`#steps option[value="${n.id}"]`).forEach(o => o.textContent = optLabel(n, i));
+}
+
+const list = $('#steps');
+list.addEventListener('input', ev => {
+  const card = ev.target.closest('.step'); if (!card) return;
+  const n = findNode(card.dataset.id);
+  if (ev.target.classList.contains('txt')) { n.text = ev.target.value; refreshOptionLabels(n); }
+  else if (ev.target.classList.contains('lbl')) n.next[+ev.target.closest('.link').dataset.j].label = ev.target.value;
+  schedule();
+});
+list.addEventListener('change', ev => {
+  const card = ev.target.closest('.step'); if (!card) return;
+  const n = findNode(card.dataset.id);
+  if (ev.target.classList.contains('type')) { n.type = ev.target.value; renderSteps(); }
+  else if (ev.target.classList.contains('to')) n.next[+ev.target.closest('.link').dataset.j].to = ev.target.value;
+  schedule();
+});
+list.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-act]'); if (!b) return;
+  const card = b.closest('.step'), n = findNode(card.dataset.id), i = state.nodes.indexOf(n);
+  switch (b.dataset.act) {
+    case 'up': case 'down': {
+      const j = b.dataset.act === 'up' ? i - 1 : i + 1;
+      [state.nodes[i], state.nodes[j]] = [state.nodes[j], state.nodes[i]]; break;
+    }
+    case 'del':
+      state.nodes.splice(i, 1);
+      state.nodes.forEach(m => m.next = m.next.filter(e => e.to !== n.id)); break;
+    case 'link': {
+      const linked = new Set(n.next.map(e => e.to));
+      const cand = [...state.nodes.slice(i + 1), ...state.nodes.slice(0, i)].find(m => !linked.has(m.id)) || state.nodes.find(m => m.id !== n.id);
+      if (!cand) { toast(t('needOther')); return; }
+      n.next.push({ to: cand.id, label: '' }); break;
+    }
+    case 'unlink': n.next.splice(+b.closest('.link').dataset.j, 1); break;
+  }
+  renderSteps(); schedule();
+  if (b.dataset.act === 'link') list.querySelector(`.step[data-id="${n.id}"] .link:last-child select`)?.focus();
+});
+
+function addNode(type, text = '', label = '') {
+  const prev = state.nodes[state.nodes.length - 1];
+  const n = { id: uid(), type, text, next: [] };
+  if (prev && !prev.next.length && prev.type !== 'end') prev.next.push({ to: n.id, label });
+  state.nodes.push(n);
+  return n;
+}
+function renderChrome() {
+  applyI18n();
+  $('#chips').innerHTML = Object.entries(TYPE_META).map(([k, m]) => `<button class="chip" data-type="${k}" style="--c:${m.color}"><i></i>+ ${typeLabel(k)}</button>`).join('');
+  $('#themes').innerHTML = Object.entries(THEMES).map(([k, th]) => {
+    const c = s => Array.isArray(th[s].fill) ? `linear-gradient(135deg,${th[s].fill[0]},${th[s].fill[1]})` : (th[s].stroke && /rgba|#FFFFFF|#111827|#0B1020/i.test(th[s].fill) ? th[s].stroke : th[s].fill);
+    return `<button class="sw" data-k="${k}" title="${t('th_' + k)}"><div class="pv" style="background:${th.bg}"><i style="background:${c('start')}"></i><i style="background:${c('decision')}"></i><i style="background:${c('io')}"></i></div><span>${t('th_' + k)}</span></button>`;
+  }).join('');
+}
+$('#chips').addEventListener('click', ev => {
+  const b = ev.target.closest('.chip'); if (!b) return;
+  const type = b.dataset.type;
+  const prev = state.nodes[state.nodes.length - 1];
+  const n = addNode(type, type === 'start' || type === 'end' ? typeLabel(type) : '', prev?.type === 'decision' ? t('yes') : '');
+  renderSteps(); schedule();
+  const card = list.querySelector(`.step[data-id="${n.id}"]`);
+  card.classList.add('flash'); card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  card.querySelector('.txt').focus();
+});
+$('#bulkAdd').onclick = () => {
+  const lines = $('#bulk').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!lines.length) { toast(t('bulkEmpty')); return; }
+  lines.forEach(l => {
+    const low = l.toLowerCase();
+    const type = /[?？]$/.test(l) ? 'decision' : (l === '开始' || low === 'start') ? 'start' : (l === '结束' || low === 'end') ? 'end' : 'process';
+    const prev = state.nodes[state.nodes.length - 1];
+    addNode(type, l, prev?.type === 'decision' ? t('yes') : '');
+  });
+  $('#bulk').value = '';
+  renderSteps(); schedule(); toast(t('bulkDone', lines.length));
+};
+$('#lang').onclick = () => {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  renderChrome(); syncSettings(); renderSteps(); render();
+};
+
+/* ---------- 设置 ---------- */
+function syncSettings() {
+  $('#title').value = state.title;
+  document.querySelectorAll('#dirSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === state.dir));
+  document.querySelectorAll('#edgeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === state.edge));
+  document.querySelectorAll('#themes .sw').forEach(b => b.classList.toggle('on', b.dataset.k === state.theme));
+}
+$('#title').addEventListener('input', e => { state.title = e.target.value; schedule(); });
+$('#dirSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; state.dir = b.dataset.v; fitMode = true; syncSettings(); schedule(); };
+$('#edgeSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; state.edge = b.dataset.v; syncSettings(); schedule(); };
+$('#themes').onclick = e => { const b = e.target.closest('.sw'); if (!b) return; state.theme = b.dataset.k; syncSettings(); schedule(); };
+$('#tpl').onchange = e => {
+  const k = e.target.value; e.target.value = ''; if (!k) return;
+  if (state.nodes.length > 1 && !confirm(t('confirmTpl'))) return;
+  state = TEMPLATES[k](); fitMode = true; syncSettings(); renderSteps(); render();
+};
+
+/* ---------- 启动 ---------- */
+state = loadInitial();
+renderChrome(); syncSettings(); renderSteps(); render();
+</script>
+</body>
+</html>
