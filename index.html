@@ -130,9 +130,9 @@ details p{color:var(--muted);font-size:12px;margin:8px 0}
     <div class="grow"></div>
     <select id="tpl" data-i18n-aria="tplAria">
       <option value="" data-i18n="tplPick"></option>
-      <option value="login" data-i18n="tplLogin"></option>
-      <option value="leave" data-i18n="tplLeave"></option>
-      <option value="order" data-i18n="tplOrder"></option>
+      <option value="method" data-i18n="tplMethod"></option>
+      <option value="peer" data-i18n="tplPeer"></option>
+      <option value="sysrev" data-i18n="tplSys"></option>
       <option value="blank" data-i18n="tplBlank"></option>
     </select>
     <button class="lang" id="lang" title="切换语言 / Switch language"><span data-l="zh">中</span><span data-l="en">EN</span></button>
@@ -207,7 +207,7 @@ const TYPE_META = {
 const I18N = {
   en: {
     tagline: 'Beautiful flowcharts from a simple form', tplAria: 'Templates', tplPick: 'Start from a template…',
-    tplLogin: 'User login', tplLeave: 'Leave approval', tplOrder: 'Online order', tplBlank: 'Blank',
+    tplMethod: 'Scientific method', tplPeer: 'Journal peer review', tplSys: 'Systematic review (PRISMA)', tplBlank: 'Blank',
     settings: 'CHART', titleLbl: 'Title (optional)', titlePh: 'e.g. User Login Flow', dir: 'Direction',
     dirTB: '↓ Vertical', dirLR: '→ Horizontal', edges: 'Edges', curve: 'Curved', orth: 'Elbow', theme: 'Theme',
     steps: 'STEPS', hint: 'Give a decision two connections labeled “Yes / No”. Links back to an earlier step are drawn as loops.',
@@ -225,7 +225,7 @@ const I18N = {
   },
   zh: {
     tagline: '填表即可生成漂亮的流程图', tplAria: '模板', tplPick: '从模板开始…',
-    tplLogin: '用户登录', tplLeave: '请假审批', tplOrder: '网购下单', tplBlank: '空白',
+    tplMethod: '科学研究方法', tplPeer: '期刊同行评审', tplSys: '系统综述（PRISMA）', tplBlank: '空白',
     settings: '图表设置', titleLbl: '标题（可选）', titlePh: '例如：用户登录流程', dir: '方向',
     dirTB: '↓ 纵向', dirLR: '→ 横向', edges: '连线', curve: '曲线', orth: '直角', theme: '主题',
     steps: '步骤', hint: '判断节点通常添加两个连接，标签填“是 / 否”。连回前面的步骤会自动画成回环。',
@@ -341,36 +341,42 @@ function tpl(title, defs) {
   };
 }
 const TEMPLATES = {
-  login: () => tpl('User Login Flow', [
-    ['s', 'start', 'Start', [['in']]],
-    ['in', 'io', 'Enter username and password', [['chk']]],
-    ['chk', 'decision', 'Credentials valid?', [['ok', 'Yes'], ['cnt', 'No']]],
-    ['ok', 'process', 'Log in and open dashboard', [['e']]],
-    ['cnt', 'decision', '5 or more failed attempts?', [['lock', 'Yes'], ['in', 'No']]],
-    ['lock', 'process', 'Lock account for 30 min', [['e']]],
+  method: () => tpl('The Scientific Method', [
+    ['s', 'start', 'Start', [['obs']]],
+    ['obs', 'process', 'Observe a phenomenon and review literature', [['q']]],
+    ['q', 'process', 'Formulate research question and hypothesis', [['design']]],
+    ['design', 'process', 'Design experiment and pre-register', [['data']]],
+    ['data', 'io', 'Collect data', [['ana']]],
+    ['ana', 'process', 'Run statistical analysis', [['sig']]],
+    ['sig', 'decision', 'Results support hypothesis?', [['rep', 'Yes'], ['refine', 'No']]],
+    ['rep', 'decision', 'Replicated independently?', [['pub', 'Yes'], ['design', 'No']]],
+    ['refine', 'process', 'Refine or reject hypothesis', [['q']]],
+    ['pub', 'sub', 'Write and publish paper', [['e']]],
     ['e', 'end', 'End'],
   ]),
-  leave: () => tpl('Leave Approval', [
+  peer: () => tpl('Journal Peer Review', [
     ['s', 'start', 'Start', [['sub']]],
-    ['sub', 'io', 'Submit leave request', [['days']]],
-    ['days', 'decision', 'More than 3 days?', [['mgr', 'Yes'], ['lead', 'No']]],
-    ['mgr', 'process', 'Department head reviews', [['pass']]],
-    ['lead', 'process', 'Team lead reviews', [['pass']]],
-    ['pass', 'decision', 'Approved?', [['hr', 'Yes'], ['back', 'No']]],
-    ['hr', 'sub', 'HR records leave', [['e']]],
-    ['back', 'process', 'Return for revision', [['sub']]],
+    ['sub', 'io', 'Author submits manuscript', [['assign']]],
+    ['assign', 'process', 'Editor assigns 2–3 reviewers', [['rep']]],
+    ['rep', 'io', 'Reviewer reports returned', [['dec']]],
+    ['dec', 'decision', 'Editor decision?', [['acc', 'Accept'], ['e', 'Reject'], ['revise', 'Revise']]],
+    ['revise', 'process', 'Author revises and responds to reviewers', [['rep']]],
+    ['acc', 'sub', 'Copyediting and publication', [['e']]],
     ['e', 'end', 'End'],
   ]),
-  order: () => tpl('Online Order', [
-    ['s', 'start', 'Start', [['browse']]],
-    ['browse', 'process', 'Browse products', [['cart']]],
-    ['cart', 'process', 'Add to cart', [['stock']]],
-    ['stock', 'decision', 'In stock?', [['pay', 'Yes'], ['oos', 'No']]],
-    ['pay', 'io', 'Place order and pay', [['paid']]],
-    ['oos', 'process', 'Show out-of-stock notice', [['e']]],
-    ['paid', 'decision', 'Payment succeeded?', [['ship', 'Yes'], ['cancel', 'No']]],
-    ['ship', 'sub', 'Ship from warehouse', [['e']]],
-    ['cancel', 'process', 'Cancel order', [['e']]],
+  sysrev: () => tpl('Systematic Review (PRISMA)', [
+    ['s', 'start', 'Start', [['pico']]],
+    ['pico', 'process', 'Define research question (PICO)', [['prot']]],
+    ['prot', 'process', 'Register protocol (PROSPERO)', [['search']]],
+    ['search', 'io', 'Search databases (PubMed, Embase, Scopus)', [['dup']]],
+    ['dup', 'process', 'Remove duplicate records', [['ta']]],
+    ['ta', 'decision', 'Title / abstract meets criteria?', [['ft', 'Yes'], ['exc', 'No']]],
+    ['ft', 'decision', 'Full text eligible?', [['ext', 'Yes'], ['exc', 'No']]],
+    ['exc', 'process', 'Record exclusion reason', [['e']]],
+    ['ext', 'process', 'Extract data and assess risk of bias', [['meta']]],
+    ['meta', 'decision', 'Meta-analysis feasible?', [['ma', 'Yes'], ['nar', 'No']]],
+    ['ma', 'sub', 'Pool effect sizes (meta-analysis)', [['e']]],
+    ['nar', 'process', 'Narrative synthesis', [['e']]],
     ['e', 'end', 'End'],
   ]),
   blank: () => tpl('', [['s', 'start', 'Start']]),
@@ -394,7 +400,7 @@ function loadInitial() {
   const m = location.hash.match(/^#d=(.+)$/);
   if (m) { try { const s = sanitize(JSON.parse(b64d(m[1]))); if (s) { history.replaceState(null, '', location.pathname + location.search); return s; } } catch (e) {} }
   try { const s = sanitize(JSON.parse(localStorage.getItem(STORE))); if (s) return s; } catch (e) {}
-  return TEMPLATES.login();
+  return TEMPLATES.method();
 }
 function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
@@ -584,9 +590,8 @@ function layout(G, dir) {
     let side = 'bottom';
     if (u.node.type === 'decision') {
       const dx = first.x - u.x;
-      if (dx < -u.w / 4) side = 'left'; else if (dx > u.w / 4) side = 'right';
-      // 目标若还没越过菱形侧顶点，就从底部出线，避免出现小折线
-      if (side !== 'bottom' && Math.abs(dx) < u.w / 2) side = 'bottom';
+      if (fo.get(u.id).length > 1) side = dx < -4 ? 'left' : dx > 4 ? 'right' : 'bottom';
+      else if (Math.abs(dx) >= u.w / 2) side = dx < 0 ? 'left' : 'right';
     }
     usedSide.get(u.id).add(side); usedSide.get(t.id).add('top');
     const P = anchor(u, side), pts = [P], g0 = gap(u.rank);

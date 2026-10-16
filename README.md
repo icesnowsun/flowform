@@ -27,7 +27,7 @@ Write each step, pick a shape, choose what it connects to. FlowForm lays it out 
 3. Switch theme, direction and edge style — the preview updates live
 4. **Export PNG** or **SVG**
 
-Or pick an example from **Start from a template…** (User login, Leave approval, Online order).
+Or pick an example from **Start from a template…** (Scientific method, Journal peer review, Systematic review / PRISMA).
 
 ## Run locally / deploy
 
