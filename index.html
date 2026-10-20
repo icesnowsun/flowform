@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FlowForm · 无代码流程图</title>
-<meta name="description" content="填表即可生成漂亮的流程图：自动排版、多套主题、一键导出 PNG / SVG。纯静态，无需安装。">
+<meta name="description" content="Make beautiful flowcharts by filling in a simple form: automatic layout, multiple themes, and one-click PNG / SVG export. Fully static, nothing to install.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='9' y='2' width='14' height='8' rx='4' fill='%234f46e5'/%3E%3Cpath d='M16 10v5' stroke='%234f46e5' stroke-width='2'/%3E%3Cpath d='M16 15l6 5-6 5-6-5z' fill='%23f59e0b'/%3E%3Cpath d='M16 25v3' stroke='%234f46e5' stroke-width='2'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -131,11 +131,20 @@ details p{color:var(--muted);font-size:12px;margin:8px 0}
     <div class="grow"></div>
     <select id="tpl" data-i18n-aria="tplAria">
       <option value="" data-i18n="tplPick"></option>
-      <option value="cohort" data-i18n="tplCohort"></option>
-      <option value="method" data-i18n="tplMethod"></option>
-      <option value="peer" data-i18n="tplPeer"></option>
-      <option value="sysrev" data-i18n="tplSys"></option>
-      <option value="blank" data-i18n="tplBlank"></option>
+      <optgroup data-i18n-label="grpStudy">
+        <option value="cohort" data-i18n="tplCohort"></option>
+        <option value="consort" data-i18n="tplConsort"></option>
+        <option value="prisma" data-i18n="tplPrisma"></option>
+        <option value="stard" data-i18n="tplStard"></option>
+        <option value="ckd" data-i18n="tplCkd"></option>
+        <option value="occ" data-i18n="tplOcc"></option>
+        <option value="ktx" data-i18n="tplKtx"></option>
+      </optgroup>
+      <optgroup data-i18n-label="grpProcess">
+        <option value="method" data-i18n="tplMethod"></option>
+        <option value="peer" data-i18n="tplPeer"></option>
+        <option value="blank" data-i18n="tplBlank"></option>
+      </optgroup>
     </select>
     <button class="lang" id="lang" title="切换语言 / Switch language"><span data-l="zh">中</span><span data-l="en">EN</span></button>
   </header>
@@ -210,7 +219,7 @@ const TYPE_META = {
 const I18N = {
   en: {
     tagline: 'Beautiful flowcharts from a simple form', tplAria: 'Templates', tplPick: 'Start from a template…',
-    tplCohort: 'Cohort selection (STROBE)', tplMethod: 'Scientific method', tplPeer: 'Journal peer review', tplSys: 'Systematic review (PRISMA)', tplBlank: 'Blank',
+    tplCohort: 'Cohort selection (STROBE)', tplMethod: 'Scientific method', tplPeer: 'Journal peer review', tplConsort: 'Randomized trial (CONSORT)', tplPrisma: 'Systematic review (PRISMA 2020)', tplStard: 'Diagnostic accuracy (STARD)', tplCkd: 'CKD cohort by eGFR stage', tplOcc: 'Occupational exposure cohort', tplKtx: 'Dialysis → transplant waitlisting', grpStudy: 'Study flow diagrams', grpProcess: 'Process diagrams', tplBlank: 'Blank',
     settings: 'CHART', titleLbl: 'Title (optional)', titlePh: 'e.g. User Login Flow', dir: 'Direction',
     dirTB: '↓ Vertical', dirLR: '→ Horizontal', edges: 'Edges', curve: 'Curved', orth: 'Elbow', theme: 'Theme',
     steps: 'STEPS', hint: 'Give a decision two connections labeled “Yes / No”. Links back to an earlier step are drawn as loops. Connect a step to an Exclusion to get a STROBE/CONSORT-style side box.',
@@ -224,11 +233,11 @@ const I18N = {
     needOther: 'Add another step first', bulkEmpty: 'Type some steps first, one per line', bulkDone: n => `Added ${n} steps`,
     svgDone: 'SVG exported', pngDone: 'High‑res PNG exported (3×)', pngFail: 'Export failed — try SVG instead',
     copied: 'Share link copied', copyPrompt: 'Copy this link:', confirmTpl: 'Loading a template replaces the current chart. Continue?',
-    th_fresh: 'Fresh', th_midnight: 'Midnight', th_morandi: 'Morandi', th_mono: 'Mono', th_sunset: 'Sunset', th_ocean: 'Ocean', th_blueprint: 'Blueprint', th_candy: 'Candy', th_journal: 'Journal',
+    th_fresh: 'Fresh', th_midnight: 'Midnight', th_morandi: 'Morandi', th_mono: 'Mono', th_sunset: 'Sunset', th_ocean: 'Ocean', th_blueprint: 'Blueprint', th_candy: 'Candy', th_journal: 'Journal', th_clinical: 'Clinical',
   },
   zh: {
     tagline: '填表即可生成漂亮的流程图', tplAria: '模板', tplPick: '从模板开始…',
-    tplCohort: '队列筛选（STROBE）', tplMethod: '科学研究方法', tplPeer: '期刊同行评审', tplSys: '系统综述（PRISMA）', tplBlank: '空白',
+    tplCohort: '队列筛选（STROBE）', tplMethod: '科学研究方法', tplPeer: '期刊同行评审', tplConsort: '随机对照试验（CONSORT）', tplPrisma: '系统综述（PRISMA 2020）', tplStard: '诊断准确性研究（STARD）', tplCkd: 'CKD 队列（按 eGFR 分期）', tplOcc: '职业暴露队列', tplKtx: '透析 → 移植等待名单', grpStudy: '研究流程图', grpProcess: '过程流程图', tplBlank: '空白',
     settings: '图表设置', titleLbl: '标题（可选）', titlePh: '例如：用户登录流程', dir: '方向',
     dirTB: '↓ 纵向', dirLR: '→ 横向', edges: '连线', curve: '曲线', orth: '直角', theme: '主题',
     steps: '步骤', hint: '判断节点通常添加两个连接，标签填“是 / 否”。连回前面的步骤会自动画成回环。把步骤连接到“排除”节点，可生成 STROBE/CONSORT 风格的侧边排除框。',
@@ -242,7 +251,7 @@ const I18N = {
     needOther: '请先添加其他步骤', bulkEmpty: '请先输入步骤，每行一个', bulkDone: n => `已添加 ${n} 个步骤`,
     svgDone: '已导出 SVG', pngDone: '已导出高清 PNG（3×）', pngFail: '导出失败，请改用 SVG',
     copied: '分享链接已复制', copyPrompt: '复制下面的链接：', confirmTpl: '载入模板会替换当前流程图，确定吗？',
-    th_fresh: '清新', th_midnight: '午夜', th_morandi: '莫兰迪', th_mono: '极简', th_sunset: '日落', th_ocean: '海洋', th_blueprint: '蓝图', th_candy: '糖果', th_journal: '期刊',
+    th_fresh: '清新', th_midnight: '午夜', th_morandi: '莫兰迪', th_mono: '极简', th_sunset: '日落', th_ocean: '海洋', th_blueprint: '蓝图', th_candy: '糖果', th_journal: '期刊', th_clinical: '临床黑白',
   },
 };
 const LANG_KEY = 'flowform.lang';
@@ -255,6 +264,7 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
   document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('[data-i18n-label]').forEach(el => el.label = t(el.dataset.i18nLabel));
   document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
 }
 
@@ -331,6 +341,15 @@ const THEMES = {
     decision: { fill: '#FDE68A', text: '#78350F' },
     io: { fill: '#DDD6FE', text: '#4C1D95' },
     sub: { fill: '#BAE6FD', text: '#0C4A6E' } },
+  clinical: { name: 'Clinical', bg: '#FFFFFF', font: SANS, edge: '#1F1F1F', edgeW: 1.2, radius: 0, strokeW: 1.2, title: '#111111',
+    label: { bg: '#FFFFFF', text: '#111111', stroke: '#FFFFFF' },
+    start: { fill: '#FFFFFF', stroke: '#1F1F1F', text: '#111111' },
+    end: { fill: '#FFFFFF', stroke: '#1F1F1F', text: '#111111' },
+    process: { fill: '#FFFFFF', stroke: '#1F1F1F', text: '#111111' },
+    decision: { fill: '#FFFFFF', stroke: '#1F1F1F', text: '#111111' },
+    io: { fill: '#FFFFFF', stroke: '#1F1F1F', text: '#111111' },
+    sub: { fill: '#F3F4F6', stroke: '#1F1F1F', text: '#111111' },
+    exclude: { fill: '#FFFFFF', stroke: '#1F1F1F', text: '#111111' } },
   journal: { name: 'Journal', bg: '#FFFFFF', font: SANS, edge: '#2F5F7F', edgeW: 1.6, radius: 0, strokeW: 2, title: '#12263A',
     label: { bg: '#FFFFFF', text: '#2F5F7F', stroke: '#FFFFFF' },
     start: { fill: '#2F5F7F', stroke: '#12263A', text: '#FFFFFF' },
@@ -385,21 +404,70 @@ const TEMPLATES = {
     ['acc', 'sub', 'Copyediting and publication', [['e']]],
     ['e', 'end', 'End'],
   ]),
-  sysrev: () => tpl('Systematic Review (PRISMA)', [
-    ['s', 'start', 'Start', [['pico']]],
-    ['pico', 'process', 'Define research question (PICO)', [['prot']]],
-    ['prot', 'process', 'Register protocol (PROSPERO)', [['search']]],
-    ['search', 'io', 'Search databases (PubMed, Embase, Scopus)', [['dup']]],
-    ['dup', 'process', 'Remove duplicate records', [['ta']]],
-    ['ta', 'decision', 'Title / abstract meets criteria?', [['ft', 'Yes'], ['exc', 'No']]],
-    ['ft', 'decision', 'Full text eligible?', [['ext', 'Yes'], ['exc', 'No']]],
-    ['exc', 'process', 'Record exclusion reason', [['e']]],
-    ['ext', 'process', 'Extract data and assess risk of bias', [['meta']]],
-    ['meta', 'decision', 'Meta-analysis feasible?', [['ma', 'Yes'], ['nar', 'No']]],
-    ['ma', 'sub', 'Pool effect sizes (meta-analysis)', [['e']]],
-    ['nar', 'process', 'Narrative synthesis', [['e']]],
-    ['e', 'end', 'End'],
-  ]),
+  consort: () => tpl('CONSORT Flow Diagram', [
+    ['as', 'process', 'Assessed for eligibility (n = 480)', [['rand'], ['ex']]],
+    ['ex', 'exclude', 'Excluded (n = 80)\n• Not meeting inclusion criteria (n = 52)\n• Declined to participate (n = 21)\n• Other reasons (n = 7)'],
+    ['rand', 'process', 'Randomized (n = 400)', [['ai'], ['ac']]],
+    ['ai', 'process', 'Allocated to intervention (n = 200)\nReceived allocated intervention (n = 196)', [['fi']]],
+    ['ac', 'process', 'Allocated to usual care (n = 200)\nReceived usual care (n = 200)', [['fc']]],
+    ['fi', 'process', 'Lost to follow-up (n = 12)\nDiscontinued intervention (n = 5)', [['ni']]],
+    ['fc', 'process', 'Lost to follow-up (n = 15)\nDiscontinued usual care (n = 0)', [['nc']]],
+    ['ni', 'process', 'Analyzed (n = 188)\nExcluded from analysis (n = 0)'],
+    ['nc', 'process', 'Analyzed (n = 185)\nExcluded from analysis (n = 0)'],
+  ], { theme: 'clinical', edge: 'orth', dir: 'TB' }),
+  prisma: () => tpl('PRISMA 2020 Flow Diagram', [
+    ['id', 'process', 'Records identified from:\nDatabases (n = 1,245)\nRegisters (n = 86)', [['scr'], ['x0']]],
+    ['x0', 'exclude', 'Records removed before screening:\n• Duplicates (n = 298)\n• Marked ineligible by automation (n = 14)'],
+    ['scr', 'process', 'Records screened (n = 1,019)', [['sought'], ['x1']]],
+    ['x1', 'exclude', 'Records excluded (n = 842)'],
+    ['sought', 'process', 'Reports sought for retrieval (n = 177)', [['elig'], ['x2']]],
+    ['x2', 'exclude', 'Reports not retrieved (n = 9)'],
+    ['elig', 'process', 'Reports assessed for eligibility (n = 168)', [['inc'], ['x3']]],
+    ['x3', 'exclude', 'Reports excluded (n = 131)\n• Wrong population (n = 58)\n• Wrong outcome (n = 41)\n• Wrong study design (n = 32)'],
+    ['inc', 'process', 'Studies included in review (n = 37)', [['ma']]],
+    ['ma', 'process', 'Studies included in meta-analysis (n = 24)'],
+  ], { theme: 'clinical', edge: 'orth', dir: 'TB' }),
+  stard: () => tpl('STARD Diagnostic Accuracy Flow', [
+    ['el', 'process', 'Eligible participants (n = 620)', [['idx'], ['ex']]],
+    ['ex', 'exclude', 'Excluded (n = 45)\n• Declined (n = 30)\n• Contraindication to index test (n = 15)'],
+    ['idx', 'process', 'Received index test (n = 575)', [['pos'], ['neg'], ['inc']]],
+    ['pos', 'process', 'Index test positive (n = 210)', [['pp'], ['pa']]],
+    ['neg', 'process', 'Index test negative (n = 352)', [['np'], ['na']]],
+    ['inc', 'process', 'Inconclusive (n = 13)\nNot included in 2 × 2 table'],
+    ['pp', 'process', 'Reference standard:\ncondition present (n = 168)'],
+    ['pa', 'process', 'Reference standard:\ncondition absent (n = 42)'],
+    ['np', 'process', 'Reference standard:\ncondition present (n = 21)'],
+    ['na', 'process', 'Reference standard:\ncondition absent (n = 331)'],
+  ], { theme: 'clinical', edge: 'orth', dir: 'TB' }),
+  ckd: () => tpl('CKD Cohort Selection', [
+    ['src', 'process', 'Adults with ≥ 2 outpatient eGFR values\n≥ 90 days apart (n = 152,340)', [['elig'], ['x1']]],
+    ['x1', 'exclude', 'Excluded (n = 8,215)\n• Age < 18 years (n = 1,102)\n• Kidney failure at baseline (n = 3,487)\n• Missing UACR (n = 3,626)'],
+    ['elig', 'process', 'Eligible adults (n = 144,125)', [['ckd'], ['x2']]],
+    ['x2', 'exclude', 'Excluded: eGFR ≥ 60 mL/min/1.73 m²\n(n = 121,904)'],
+    ['ckd', 'process', 'CKD G3–G4 analytic cohort (n = 22,221)', [['g3a'], ['g3b'], ['g4']]],
+    ['g3a', 'process', 'G3a: eGFR 45–59\n(n = 13,640)'],
+    ['g3b', 'process', 'G3b: eGFR 30–44\n(n = 6,215)'],
+    ['g4', 'process', 'G4: eGFR 15–29\n(n = 2,366)'],
+  ], { theme: 'journal', edge: 'orth', dir: 'TB' }),
+  occ: () => tpl('Occupational Exposure Cohort', [
+    ['reg', 'process', 'Workers in employer records, 1950–2000\n(n = 48,730)', [['link'], ['x1']]],
+    ['x1', 'exclude', 'Excluded (n = 3,512)\n• Employed < 1 year (n = 2,860)\n• Missing work history (n = 652)'],
+    ['link', 'process', 'Linked to death index and kidney registry\n(n = 45,218)', [['jem']]],
+    ['jem', 'sub', 'Exposure assigned by job-exposure matrix', [['exp'], ['unexp']]],
+    ['exp', 'process', 'Ever exposed to solvents\n(n = 17,904)', [['o1']]],
+    ['unexp', 'process', 'Never exposed\n(n = 27,314)', [['o2']]],
+    ['o1', 'process', 'Incident kidney failure (n = 212)'],
+    ['o2', 'process', 'Incident kidney failure (n = 198)'],
+  ], { theme: 'clinical', edge: 'orth', dir: 'TB' }),
+  ktx: () => tpl('Dialysis to Transplant Waitlisting', [
+    ['inc', 'process', 'Adults initiating maintenance dialysis\n(n = 12,480)', [['coh'], ['x1']]],
+    ['x1', 'exclude', 'Excluded (n = 1,320)\n• Age < 18 years (n = 210)\n• Prior kidney transplant (n = 540)\n• Missing covariates (n = 570)'],
+    ['coh', 'process', 'Study cohort (n = 11,160)', [['wl'], ['nwl']]],
+    ['wl', 'process', 'Waitlisted within 3 years\n(n = 2,214)', [['tx'], ['ntx']]],
+    ['nwl', 'process', 'Not waitlisted\n(n = 8,946)'],
+    ['tx', 'process', 'Received kidney transplant\n(n = 1,105)'],
+    ['ntx', 'process', 'Remained waitlisted or died\n(n = 1,109)'],
+  ], { theme: 'journal', edge: 'orth', dir: 'TB' }),
   blank: () => tpl('', [['s', 'start', 'Start']]),
 };
 
@@ -433,18 +501,21 @@ function wrap(text, font, maxW) { return text.split('\n').flatMap(p => wrapLine(
 function wrapLine(text, font, maxW) {
   mctx.font = font;
   const lines = []; let cur = '';
+  // 让 “(n = 1,234)” 这类样本量标注不被拆行
+  text = text.replace(/\(\s*[nN]\s*=\s*[\d,.\s]+\)/g, m => m.replace(/ /g, '\u0001'));
+  const W = x => mctx.measureText(x.replace(/\u0001/g, ' ')).width;
   for (const tok of (text.match(TOK) || [''])) {
     if (/^\s+$/.test(tok)) { if (cur) cur += ' '; continue; }
     const t = cur + tok;
-    if (!cur.trim() || mctx.measureText(t).width <= maxW) cur = t;
+    if (!cur.trim() || W(t) <= maxW) cur = t;
     else { lines.push(cur.trimEnd()); cur = tok; }
   }
   lines.push(cur.trimEnd());
-  return lines;
+  return lines.map(l => l.replace(/\u0001/g, ' '));
 }
 function sizeNode(n, th) {
   const font = `500 ${FS}px ${th.font}`;
-  n.lines = wrap(n.text, font, n.type === 'decision' ? 120 : n.type === 'exclude' ? 200 : 168);
+  n.lines = wrap(n.text, font, n.type === 'decision' ? 120 : n.type === 'exclude' ? 280 : 200);
   mctx.font = font;
   const tw = Math.max(24, ...n.lines.map(l => mctx.measureText(l).width));
   const th_ = n.lines.length * LH;
@@ -581,16 +652,17 @@ function layout(G, dir) {
     });
   }
 
-  // 一对一的上下游尽量对齐成直线，消除细小的弯折
-  for (let pass = 0; pass < 2; pass++) for (let r = 1; r <= maxR; r++) {
-    const L = layers[r];
-    L.forEach((v, i) => {
-      if (v.up.length !== 1 || v.up[0].down.length !== 1) return;
-      const t = v.up[0].x;
-      const lo = i > 0 ? L[i - 1].x + sep(L[i - 1], v) : -Infinity;
-      const hi = i < L.length - 1 ? L[i + 1].x - sep(v, L[i + 1]) : Infinity;
-      if (t >= lo && t <= hi) v.x = t;
-    });
+  // 一对一的上下游串成“链”，整条链对齐成一条竖直线（交替做链平均 + 层内间距约束）
+  const chainOf = new Map();
+  V.forEach(v => {
+    if (v.up.length === 1 && v.up[0].down.length === 1) return;
+    const ch = [v]; let c = v;
+    while (c.down.length === 1 && c.down[0].up.length === 1) { c = c.down[0]; ch.push(c); }
+    if (ch.length > 1) ch.forEach(m => chainOf.set(m, ch));
+  });
+  for (let it = 0; it < 24; it++) {
+    const cx = new Map(); new Set(chainOf.values()).forEach(ch => cx.set(ch, avg(ch)));
+    layers.forEach(L => solve(L, L.map(v => chainOf.has(v) ? cx.get(chainOf.get(v)) : v.x)));
   }
 
   // 6. 纵向坐标
@@ -662,8 +734,7 @@ function layout(G, dir) {
   // 排除框放在主流程右侧，箭头从主干竖线水平引出
   if (sideNodes.length) {
     let right = -Infinity;
-    V.forEach(v => { right = Math.max(right, v.x + v.w / 2); });
-    routes.forEach(r => r.pts.forEach(p => { right = Math.max(right, p.x); }));
+    sideAt.forEach((L, r) => [layers[r], layers[r + 1] || []].forEach(Ly => Ly.forEach(v => { right = Math.max(right, v.x + v.w / 2); })));
     sideAt.forEach((L, r) => {
       const total = L.reduce((a, s) => a + s.lh, 0) + 14 * (L.length - 1);
       let yy = gap(r) - total / 2;
@@ -941,8 +1012,14 @@ list.addEventListener('click', ev => {
   const card = b.closest('.step'), n = findNode(card.dataset.id), i = state.nodes.indexOf(n);
   switch (b.dataset.act) {
     case 'up': case 'down': {
-      const j = b.dataset.act === 'up' ? i - 1 : i + 1;
-      [state.nodes[i], state.nodes[j]] = [state.nodes[j], state.nodes[i]]; break;
+      const d = b.dataset.act === 'up' ? -1 : 1;
+      let j = i + d;
+      // 主流程步骤跳过排除框，与相邻的主流程步骤交换位置（连线一起交换，图会跟着变）
+      if (n.type !== 'exclude') while (j >= 0 && j < state.nodes.length && state.nodes[j].type === 'exclude') j += d;
+      if (j < 0 || j >= state.nodes.length) return;
+      const m = state.nodes[j];
+      if (n.type !== 'exclude' && m.type !== 'exclude') swapInFlow(n, m);
+      [state.nodes[i], state.nodes[j]] = [m, n]; break;
     }
     case 'del':
       state.nodes.splice(i, 1);
@@ -959,6 +1036,10 @@ list.addEventListener('click', ev => {
   if (b.dataset.act === 'link') list.querySelector(`.step[data-id="${n.id}"] .link:last-child select`)?.focus();
 });
 
+function swapInFlow(a, b) {
+  state.nodes.forEach(x => x.next.forEach(e => { if (e.to === a.id) e.to = b.id; else if (e.to === b.id) e.to = a.id; }));
+  [a.next, b.next] = [b.next, a.next];
+}
 function addNode(type, text = '', label = '') {
   const prev = [...state.nodes].reverse().find(m => m.type !== 'exclude');
   const n = { id: uid(), type, text, next: [] };
