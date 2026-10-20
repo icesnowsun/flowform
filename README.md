@@ -10,10 +10,11 @@ Write each step, pick a shape, choose what it connects to. FlowForm lays it out 
 ## Features
 
 - **Form-based editing** – one card per step: text, shape, and “Connect to…”
-- **Bulk add** – one step per line, auto-connected; lines ending with `?` become decisions
+- **Bulk add** – one step per line, auto-connected; lines ending with `?` become decisions, lines starting with `- ` become exclusion boxes
 - **Auto layout** – layered layout with crossing reduction; decision branches split left/right; links back to earlier steps become side loops
-- **6 shapes** – Start, End, Process, Decision, Input/Output, Subprocess
-- **8 themes** – Fresh, Midnight, Morandi, Mono, Sunset (gradient), Ocean, Blueprint, Candy
+- **7 shapes** – Start, End, Process, Decision, Input/Output, Subprocess, Exclusion
+- **STROBE / CONSORT-style exclusion boxes** – connect a step to an *Exclusion* and it is placed to the side with an arrow branching off the main flow
+- **9 themes** – Fresh, Midnight, Morandi, Mono, Sunset (gradient), Ocean, Blueprint, Candy, Journal
 - **Vertical / horizontal** direction, **curved / elbow** edges
 - **Export** 3× PNG or vector SVG (drop straight into slides, Figma, docs)
 - **Share link** – the whole chart is encoded in the URL
@@ -27,7 +28,7 @@ Write each step, pick a shape, choose what it connects to. FlowForm lays it out 
 3. Switch theme, direction and edge style — the preview updates live
 4. **Export PNG** or **SVG**
 
-Or pick an example from **Start from a template…** (Scientific method, Journal peer review, Systematic review / PRISMA).
+Or pick an example from **Start from a template…** (Cohort selection / STROBE, Scientific method, Journal peer review, Systematic review / PRISMA).
 
 ## Run locally / deploy
 
@@ -46,7 +47,8 @@ Everything lives in `index.html`. To add a theme, copy an entry in the `THEMES` 
 - 左侧每张卡片是一个步骤：填文字、选形状、点“+ 连接到…”指定下一步
 - 判断节点添加两条连线并标注“是 / 否”；连回前面的步骤会自动画成回环
 - “批量添加”：每行一个步骤，以 `?` / `？` 结尾识别为判断
-- 8 套主题、纵向 / 横向、曲线 / 直角，导出 3× PNG 或 SVG
+- 把步骤连接到“排除”节点，即可生成 STROBE / CONSORT 风格的侧边排除框
+- 9 套主题、纵向 / 横向、曲线 / 直角，导出 3× PNG 或 SVG
 - 右上角“中 / EN”切换界面语言
 
 ## License

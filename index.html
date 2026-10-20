@@ -69,6 +69,7 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
 .step.flash{animation:flash .8s ease}
 @keyframes flash{from{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}}
 .step-head{display:flex;align-items:center;gap:6px}
+.step textarea.txt{min-height:0;resize:none;overflow:hidden;line-height:1.45;display:block}
 .badge{width:24px;height:24px;border-radius:7px;background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c);font-weight:600;font-size:12px;display:grid;place-items:center;flex:none}
 .step-head select{width:auto;padding:3px 26px 3px 8px;font-size:13px;border-color:var(--line)}
 .ib{width:28px;height:28px;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
@@ -130,6 +131,7 @@ details p{color:var(--muted);font-size:12px;margin:8px 0}
     <div class="grow"></div>
     <select id="tpl" data-i18n-aria="tplAria">
       <option value="" data-i18n="tplPick"></option>
+      <option value="cohort" data-i18n="tplCohort"></option>
       <option value="method" data-i18n="tplMethod"></option>
       <option value="peer" data-i18n="tplPeer"></option>
       <option value="sysrev" data-i18n="tplSys"></option>
@@ -201,45 +203,46 @@ const TYPE_META = {
   io:       { color: '#7c3aed' },
   sub:      { color: '#0891b2' },
   end:      { color: '#e11d48' },
+  exclude:  { color: '#64748b' },
 };
 
 /* ---------- 多语言 / i18n ---------- */
 const I18N = {
   en: {
     tagline: 'Beautiful flowcharts from a simple form', tplAria: 'Templates', tplPick: 'Start from a template…',
-    tplMethod: 'Scientific method', tplPeer: 'Journal peer review', tplSys: 'Systematic review (PRISMA)', tplBlank: 'Blank',
+    tplCohort: 'Cohort selection (STROBE)', tplMethod: 'Scientific method', tplPeer: 'Journal peer review', tplSys: 'Systematic review (PRISMA)', tplBlank: 'Blank',
     settings: 'CHART', titleLbl: 'Title (optional)', titlePh: 'e.g. User Login Flow', dir: 'Direction',
     dirTB: '↓ Vertical', dirLR: '→ Horizontal', edges: 'Edges', curve: 'Curved', orth: 'Elbow', theme: 'Theme',
-    steps: 'STEPS', hint: 'Give a decision two connections labeled “Yes / No”. Links back to an earlier step are drawn as loops.',
-    bulk: 'Bulk add', bulkHelp: 'One step per line, connected in order. Lines ending with ? become decisions; “Start / End” are detected automatically.',
-    bulkPh: 'Start\nFill in the form\nAll fields valid?\nSubmit\nEnd', bulkBtn: 'Add to flow',
+    steps: 'STEPS', hint: 'Give a decision two connections labeled “Yes / No”. Links back to an earlier step are drawn as loops. Connect a step to an Exclusion to get a STROBE/CONSORT-style side box.',
+    bulk: 'Bulk add', bulkHelp: 'One step per line, connected in order. Lines ending with ? become decisions; “Start / End” are detected automatically; lines starting with “- ” become exclusion boxes.',
+    bulkPh: 'All patients (n = 100)\n- Excluded: male (n = 11)\nFemale (n = 89)\n- Excluded: eGFR ≥ 30 (n = 19)\nAnalytic sample (n = 70)', bulkBtn: 'Add to flow',
     zoomOut: 'Zoom out', zoomIn: 'Zoom in', fit: 'Fit', share: 'Share link', shareTip: 'Copy a link that contains this chart', exPng: 'Export PNG',
-    t_start: 'Start', t_process: 'Process', t_decision: 'Decision', t_io: 'Input / Output', t_sub: 'Subprocess', t_end: 'End',
+    t_start: 'Start', t_process: 'Process', t_decision: 'Decision', t_io: 'Input / Output', t_sub: 'Subprocess', t_end: 'End', t_exclude: 'Exclusion',
     shape: 'Shape', up: 'Move up', down: 'Move down', del: 'Delete', stepPh: 'Describe this step…', stepAria: 'Step text',
     linkTo: '+ Connect to…', target: 'Target step', yesNo: 'Yes / No', labelPh: 'Label (optional)', edgeAria: 'Edge label', unlink: 'Remove connection',
     untitled: '(untitled)', yes: 'Yes', empty: 'No steps yet<br>Click “+ Process” on the left to begin',
     needOther: 'Add another step first', bulkEmpty: 'Type some steps first, one per line', bulkDone: n => `Added ${n} steps`,
     svgDone: 'SVG exported', pngDone: 'High‑res PNG exported (3×)', pngFail: 'Export failed — try SVG instead',
     copied: 'Share link copied', copyPrompt: 'Copy this link:', confirmTpl: 'Loading a template replaces the current chart. Continue?',
-    th_fresh: 'Fresh', th_midnight: 'Midnight', th_morandi: 'Morandi', th_mono: 'Mono', th_sunset: 'Sunset', th_ocean: 'Ocean', th_blueprint: 'Blueprint', th_candy: 'Candy',
+    th_fresh: 'Fresh', th_midnight: 'Midnight', th_morandi: 'Morandi', th_mono: 'Mono', th_sunset: 'Sunset', th_ocean: 'Ocean', th_blueprint: 'Blueprint', th_candy: 'Candy', th_journal: 'Journal',
   },
   zh: {
     tagline: '填表即可生成漂亮的流程图', tplAria: '模板', tplPick: '从模板开始…',
-    tplMethod: '科学研究方法', tplPeer: '期刊同行评审', tplSys: '系统综述（PRISMA）', tplBlank: '空白',
+    tplCohort: '队列筛选（STROBE）', tplMethod: '科学研究方法', tplPeer: '期刊同行评审', tplSys: '系统综述（PRISMA）', tplBlank: '空白',
     settings: '图表设置', titleLbl: '标题（可选）', titlePh: '例如：用户登录流程', dir: '方向',
     dirTB: '↓ 纵向', dirLR: '→ 横向', edges: '连线', curve: '曲线', orth: '直角', theme: '主题',
-    steps: '步骤', hint: '判断节点通常添加两个连接，标签填“是 / 否”。连回前面的步骤会自动画成回环。',
-    bulk: '批量添加', bulkHelp: '每行一个步骤，按顺序自动连接。以 ? 或 ？ 结尾的行识别为判断；“开始 / 结束 / Start / End”自动识别。',
-    bulkPh: '开始\n填写表单\n信息完整？\n提交成功\n结束', bulkBtn: '添加到流程',
+    steps: '步骤', hint: '判断节点通常添加两个连接，标签填“是 / 否”。连回前面的步骤会自动画成回环。把步骤连接到“排除”节点，可生成 STROBE/CONSORT 风格的侧边排除框。',
+    bulk: '批量添加', bulkHelp: '每行一个步骤，按顺序自动连接。以 ? 或 ？ 结尾的行识别为判断；“开始 / 结束 / Start / End”自动识别；以“- ”开头的行生成排除框。',
+    bulkPh: '全部患者（n = 100）\n- 排除：男性（n = 11）\n女性（n = 89）\n- 排除：eGFR ≥ 30（n = 19）\n最终样本（n = 70）', bulkBtn: '添加到流程',
     zoomOut: '缩小', zoomIn: '放大', fit: '适应', share: '分享链接', shareTip: '复制包含当前流程图的链接', exPng: '导出 PNG',
-    t_start: '开始', t_process: '步骤', t_decision: '判断', t_io: '输入/输出', t_sub: '子流程', t_end: '结束',
+    t_start: '开始', t_process: '步骤', t_decision: '判断', t_io: '输入/输出', t_sub: '子流程', t_end: '结束', t_exclude: '排除',
     shape: '形状', up: '上移', down: '下移', del: '删除', stepPh: '描述这个步骤…', stepAria: '步骤文字',
     linkTo: '+ 连接到…', target: '目标步骤', yesNo: '是 / 否', labelPh: '标签（可选）', edgeAria: '连线标签', unlink: '移除连接',
     untitled: '（未命名）', yes: '是', empty: '还没有步骤<br>在左侧点击“+ 步骤”开始',
     needOther: '请先添加其他步骤', bulkEmpty: '请先输入步骤，每行一个', bulkDone: n => `已添加 ${n} 个步骤`,
     svgDone: '已导出 SVG', pngDone: '已导出高清 PNG（3×）', pngFail: '导出失败，请改用 SVG',
     copied: '分享链接已复制', copyPrompt: '复制下面的链接：', confirmTpl: '载入模板会替换当前流程图，确定吗？',
-    th_fresh: '清新', th_midnight: '午夜', th_morandi: '莫兰迪', th_mono: '极简', th_sunset: '日落', th_ocean: '海洋', th_blueprint: '蓝图', th_candy: '糖果',
+    th_fresh: '清新', th_midnight: '午夜', th_morandi: '莫兰迪', th_mono: '极简', th_sunset: '日落', th_ocean: '海洋', th_blueprint: '蓝图', th_candy: '糖果', th_journal: '期刊',
   },
 };
 const LANG_KEY = 'flowform.lang';
@@ -265,7 +268,8 @@ const THEMES = {
     process: { fill: '#FFFFFF', stroke: '#60A5FA', text: '#1E3A8A' },
     decision: { fill: '#FEF3C7', stroke: '#F59E0B', text: '#78350F' },
     io: { fill: '#EDE9FE', stroke: '#8B5CF6', text: '#4C1D95' },
-    sub: { fill: '#E0F2FE', stroke: '#0EA5E9', text: '#0C4A6E' } },
+    sub: { fill: '#E0F2FE', stroke: '#0EA5E9', text: '#0C4A6E' },
+    exclude: { fill: '#F8FAFC', stroke: '#94A3B8', text: '#334155' } },
   midnight: { name: '午夜', bg: '#0B1020', font: SANS, edge: '#56627A', edgeW: 1.6, radius: 10, strokeW: 1.6,
     shadow: { color: '#000000', op: .5, blur: 6, dy: 3 }, title: '#F1F5F9',
     label: { bg: '#0B1020', text: '#CBD5E1', stroke: '#334155' },
@@ -327,20 +331,37 @@ const THEMES = {
     decision: { fill: '#FDE68A', text: '#78350F' },
     io: { fill: '#DDD6FE', text: '#4C1D95' },
     sub: { fill: '#BAE6FD', text: '#0C4A6E' } },
+  journal: { name: 'Journal', bg: '#FFFFFF', font: SANS, edge: '#2F5F7F', edgeW: 1.6, radius: 0, strokeW: 2, title: '#12263A',
+    label: { bg: '#FFFFFF', text: '#2F5F7F', stroke: '#FFFFFF' },
+    start: { fill: '#2F5F7F', stroke: '#12263A', text: '#FFFFFF' },
+    end: { fill: '#2F5F7F', stroke: '#12263A', text: '#FFFFFF' },
+    process: { fill: '#2F5F7F', stroke: '#12263A', text: '#FFFFFF' },
+    decision: { fill: '#3E7397', stroke: '#12263A', text: '#FFFFFF' },
+    io: { fill: '#2F5F7F', stroke: '#12263A', text: '#FFFFFF' },
+    sub: { fill: '#2F5F7F', stroke: '#12263A', text: '#FFFFFF' },
+    exclude: { fill: '#2F5F7F', stroke: '#12263A', text: '#FFFFFF' } },
 };
 
 /* ---------- 状态 ---------- */
 const uid = () => 'n' + Math.random().toString(36).slice(2, 8);
 let state;
 
-function tpl(title, defs) {
+function tpl(title, defs, opts = {}) {
   const ids = {}; defs.forEach(d => ids[d[0]] = uid());
   return {
     title, dir: state?.dir || 'TB', theme: state?.theme || 'fresh', edge: state?.edge || 'curve',
     nodes: defs.map(([k, type, text, next = []]) => ({ id: ids[k], type, text, next: next.map(([to, label = '']) => ({ to: ids[to], label })) })),
+    ...opts,
   };
 }
 const TEMPLATES = {
+  cohort: () => tpl('Study Population Flow', [
+    ['all', 'process', 'Overall sample (n = 100)', [['fem'], ['x1']]],
+    ['x1', 'exclude', 'Excluded: male (n = 11)'],
+    ['fem', 'process', 'Female (n = 89)', [['fin'], ['x2']]],
+    ['x2', 'exclude', 'Excluded: eGFR \u2265 30 (n = 19)'],
+    ['fin', 'process', 'Final sample: eGFR < 30\n(n = 70)'],
+  ], { theme: 'journal', edge: 'orth', dir: 'TB' }),
   method: () => tpl('The Scientific Method', [
     ['s', 'start', 'Start', [['obs']]],
     ['obs', 'process', 'Observe a phenomenon and review literature', [['q']]],
@@ -408,7 +429,8 @@ function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } ca
 const mctx = document.createElement('canvas').getContext('2d');
 const CJK = '⺀-鿿豈-﫿＀-￯　-〿';
 const TOK = new RegExp(`[${CJK}]|[^\\s${CJK}]+|\\s+`, 'g');
-function wrap(text, font, maxW) {
+function wrap(text, font, maxW) { return text.split('\n').flatMap(p => wrapLine(p, font, maxW)); }
+function wrapLine(text, font, maxW) {
   mctx.font = font;
   const lines = []; let cur = '';
   for (const tok of (text.match(TOK) || [''])) {
@@ -422,7 +444,7 @@ function wrap(text, font, maxW) {
 }
 function sizeNode(n, th) {
   const font = `500 ${FS}px ${th.font}`;
-  n.lines = wrap(n.text, font, n.type === 'decision' ? 120 : 168);
+  n.lines = wrap(n.text, font, n.type === 'decision' ? 120 : n.type === 'exclude' ? 200 : 168);
   mctx.font = font;
   const tw = Math.max(24, ...n.lines.map(l => mctx.measureText(l).width));
   const th_ = n.lines.length * LH;
@@ -431,6 +453,7 @@ function sizeNode(n, th) {
     case 'decision': { const H = Math.max(th_ * 1.6 + 40, 72); n.h = H; n.w = Math.max(tw / (1 - th_ / H) + 30, H * 1.35); break; }
     case 'io': n.h = Math.max(th_ + 26, 46); n.w = Math.max(tw + 40 + SKEW * 2, 130); break;
     case 'sub': n.h = Math.max(th_ + 26, 46); n.w = Math.max(tw + 56, 130); break;
+    case 'exclude': n.h = Math.max(th_ + 24, 44); n.w = Math.max(tw + 32, 140); break;
     default: n.h = Math.max(th_ + 26, 46); n.w = Math.max(tw + 40, 120);
   }
 }
@@ -438,9 +461,15 @@ function sizeNode(n, th) {
 /* ---------- 自动布局（分层 Sugiyama 简化版） ---------- */
 function layout(G, dir) {
   const LR = dir === 'LR';
-  const N = G.nodes, E = G.edges;
   const RANK_SEP = LR ? 84 : 64;
-  N.forEach(n => { n.lw = LR ? n.h : n.w; n.lh = LR ? n.w : n.h; });
+  G.nodes.forEach(n => { n.lw = LR ? n.h : n.w; n.lh = LR ? n.w : n.h; });
+  // 排除框（STROBE/CONSORT 侧边框）：从主流程连过去的“排除”节点不参与分层
+  const byId = new Map(G.nodes.map(n => [n.id, n]));
+  const sideOf = new Map();
+  G.edges.forEach(e => { const a = byId.get(e.from), b = byId.get(e.to); if (b.type === 'exclude' && a.type !== 'exclude' && a !== b && !sideOf.has(b.id)) sideOf.set(b.id, e); });
+  const sideNodes = G.nodes.filter(n => sideOf.has(n.id));
+  const N = G.nodes.filter(n => !sideOf.has(n.id));
+  const E = G.edges.filter(e => !sideOf.has(e.to) && !sideOf.has(e.from));
 
   // 1. 找回边（环）
   const outE = new Map(N.map(n => [n.id, []]));
@@ -566,9 +595,12 @@ function layout(G, dir) {
 
   // 6. 纵向坐标
   const bandH = layers.map(L => Math.max(8, ...L.map(v => v.h)));
+  const sideAt = new Map();
+  sideNodes.forEach(s => { const r = V.get(sideOf.get(s.id).from).rank; if (!sideAt.has(r)) sideAt.set(r, []); sideAt.get(r).push(s); });
+  const gs = layers.map((_, r) => { const L = sideAt.get(r); return L ? Math.max(RANK_SEP, L.reduce((a, s) => a + s.lh, 0) + 14 * (L.length - 1) + 44) : RANK_SEP; });
   const top = []; let y = 0;
-  bandH.forEach((h, r) => { top[r] = y; y += h + RANK_SEP; });
-  const gap = r => top[r] + bandH[r] + RANK_SEP / 2;
+  bandH.forEach((h, r) => { top[r] = y; y += h + gs[r]; });
+  const gap = r => top[r] + bandH[r] + gs[r] / 2;
   V.forEach(v => v.y = top[v.rank] + bandH[v.rank] / 2);
 
   // 7. 连线路由
@@ -627,9 +659,27 @@ function layout(G, dir) {
     routes.push({ e, pts: [{ x: ax, y: y1 }, { x: X, y: y1 }, { x: X, y: y2 }, { x: ax, y: y2 }] });
   });
 
+  // 排除框放在主流程右侧，箭头从主干竖线水平引出
+  if (sideNodes.length) {
+    let right = -Infinity;
+    V.forEach(v => { right = Math.max(right, v.x + v.w / 2); });
+    routes.forEach(r => r.pts.forEach(p => { right = Math.max(right, p.x); }));
+    sideAt.forEach((L, r) => {
+      const total = L.reduce((a, s) => a + s.lh, 0) + 14 * (L.length - 1);
+      let yy = gap(r) - total / 2;
+      L.forEach(s => {
+        s.vx = right + 64 + s.lw / 2; s.vy = yy + s.lh / 2; yy += s.lh + 14;
+        const e = sideOf.get(s.id), u = V.get(e.from), end = { x: s.vx - s.lw / 2, y: s.vy };
+        const pts = fo.get(u.id).length ? [{ x: u.x, y: s.vy }, end] : [anchor(u, 'bottom'), { x: u.x, y: s.vy }, end];
+        routes.push({ e, pts });
+      });
+    });
+  }
+
   // 8. 坐标变换（横向布局时交换 x / y）
   const T = p => LR ? { x: p.y, y: p.x } : { x: p.x, y: p.y };
   N.forEach(n => { const c = T(V.get(n.id)); n.cx = c.x; n.cy = c.y; });
+  sideNodes.forEach(n => { const c = T({ x: n.vx, y: n.vy }); n.cx = c.x; n.cy = c.y; });
   routes.forEach(r => r.pts = simplify(r.pts.map(T)));
   return routes;
 }
@@ -706,9 +756,9 @@ function nodeSvg(n, th) {
     default:
       shape = `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" rx="${th.radius}" fill="${fill}"${st}${flt}/>`;
   }
-  const y0 = cy - (n.lines.length - 1) * LH / 2;
-  const tx = n.lines.map((l, i) => `<tspan x="${f(cx)}" y="${f(y0 + i * LH)}">${esc(l)}</tspan>`).join('');
-  return `<g>${shape}<text font-size="${FS}" font-weight="500" fill="${s.text}" text-anchor="middle" dominant-baseline="central">${tx}</text></g>`;
+  const y0 = cy - (n.lines.length - 1) * LH / 2, left = n.type === 'exclude', tx0 = left ? x + 16 : cx;
+  const tx = n.lines.map((l, i) => `<tspan x="${f(tx0)}" y="${f(y0 + i * LH)}">${esc(l)}</tspan>`).join('');
+  return `<g>${shape}<text font-size="${FS}" font-weight="500" fill="${s.text}" text-anchor="${left ? 'start' : 'middle'}" dominant-baseline="central">${tx}</text></g>`;
 }
 
 function buildGraph() {
@@ -751,7 +801,7 @@ function buildSvg() {
   const defs = [];
   defs.push(`<marker id="ffa" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1.5 L9 5 L1 8.5 z" fill="${th.edge}"/></marker>`);
   if (th.shadow) defs.push(`<filter id="ffsh" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="${th.shadow.dy}" stdDeviation="${th.shadow.blur}" flood-color="${th.shadow.color}" flood-opacity="${th.shadow.op}"/></filter>`);
-  Object.keys(TYPE_META).forEach(k => { const s = th[k]; if (Array.isArray(s.fill)) defs.push(`<linearGradient id="ffg-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${s.fill[0]}"/><stop offset="1" stop-color="${s.fill[1]}"/></linearGradient>`); });
+  Object.keys(TYPE_META).forEach(k => { const s = th[k]; if (s && Array.isArray(s.fill)) defs.push(`<linearGradient id="ffg-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${s.fill[0]}"/><stop offset="1" stop-color="${s.fill[1]}"/></linearGradient>`); });
   if (th.grid) defs.push(`<pattern id="ffgrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="${th.grid}" stroke-width="1"/></pattern>`);
 
   const parts = [];
@@ -832,7 +882,7 @@ const ICON = {
   x: '<svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg>',
 };
 const findNode = id => state.nodes.find(n => n.id === id);
-const short = s => { s = s.trim() || t('untitled'); const max = /[\u2E80-\u9FFF]/.test(s) ? 14 : 24; return s.length > max ? s.slice(0, max) + '…' : s; };
+const short = s => { s = s.replace(/\s+/g, ' ').trim() || t('untitled'); const max = /[\u2E80-\u9FFF]/.test(s) ? 14 : 24; return s.length > max ? s.slice(0, max) + '…' : s; };
 const optLabel = (m, i) => `${i + 1}. ${short(m.text)}`;
 const targetOptions = (selfId, sel) => state.nodes.map((m, i) => m.id === selfId ? '' : `<option value="${m.id}"${m.id === sel ? ' selected' : ''}>${esc(optLabel(m, i))}</option>`).join('');
 
@@ -849,7 +899,7 @@ function renderSteps() {
         <button class="ib" data-act="down" title="${t('down')}"${i === state.nodes.length - 1 ? ' disabled' : ''}>${ICON.down}</button>
         <button class="ib danger" data-act="del" title="${t('del')}">${ICON.del}</button>
       </div>
-      <input type="text" class="txt" placeholder="${t('stepPh')}" aria-label="${t('stepAria')}">
+      <textarea class="txt" rows="1" placeholder="${t('stepPh')}" aria-label="${t('stepAria')}"></textarea>
       <div class="links"></div>
       <button class="add-link" data-act="link">${t('linkTo')}</button>`;
     card.querySelector('.txt').value = n.text;
@@ -862,8 +912,10 @@ function renderSteps() {
     });
     list.appendChild(card);
   });
+  list.querySelectorAll('textarea.txt').forEach(autoGrow);
   $('#stepCount').textContent = state.nodes.length;
 }
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 2 + 'px'; }
 function refreshOptionLabels(n) {
   const i = state.nodes.indexOf(n);
   document.querySelectorAll(`#steps option[value="${n.id}"]`).forEach(o => o.textContent = optLabel(n, i));
@@ -873,7 +925,7 @@ const list = $('#steps');
 list.addEventListener('input', ev => {
   const card = ev.target.closest('.step'); if (!card) return;
   const n = findNode(card.dataset.id);
-  if (ev.target.classList.contains('txt')) { n.text = ev.target.value; refreshOptionLabels(n); }
+  if (ev.target.classList.contains('txt')) { n.text = ev.target.value; autoGrow(ev.target); refreshOptionLabels(n); }
   else if (ev.target.classList.contains('lbl')) n.next[+ev.target.closest('.link').dataset.j].label = ev.target.value;
   schedule();
 });
@@ -908,9 +960,11 @@ list.addEventListener('click', ev => {
 });
 
 function addNode(type, text = '', label = '') {
-  const prev = state.nodes[state.nodes.length - 1];
+  const prev = [...state.nodes].reverse().find(m => m.type !== 'exclude');
   const n = { id: uid(), type, text, next: [] };
-  if (prev && !prev.next.length && prev.type !== 'end') prev.next.push({ to: n.id, label });
+  const isEx = id => state.nodes.find(m => m.id === id)?.type === 'exclude';
+  if (prev && type === 'exclude') prev.next.push({ to: n.id, label: '' });
+  else if (prev && !prev.next.some(e => !isEx(e.to)) && prev.type !== 'end') prev.next.push({ to: n.id, label });
   state.nodes.push(n);
   return n;
 }
@@ -925,7 +979,7 @@ function renderChrome() {
 $('#chips').addEventListener('click', ev => {
   const b = ev.target.closest('.chip'); if (!b) return;
   const type = b.dataset.type;
-  const prev = state.nodes[state.nodes.length - 1];
+  const prev = [...state.nodes].reverse().find(m => m.type !== 'exclude');
   const n = addNode(type, type === 'start' || type === 'end' ? typeLabel(type) : '', prev?.type === 'decision' ? t('yes') : '');
   renderSteps(); schedule();
   const card = list.querySelector(`.step[data-id="${n.id}"]`);
@@ -937,8 +991,9 @@ $('#bulkAdd').onclick = () => {
   if (!lines.length) { toast(t('bulkEmpty')); return; }
   lines.forEach(l => {
     const low = l.toLowerCase();
+    if (/^[-\u2013\u2022]\s*/.test(l)) { addNode('exclude', l.replace(/^[-\u2013\u2022]\s*/, '')); return; }
     const type = /[?？]$/.test(l) ? 'decision' : (l === '开始' || low === 'start') ? 'start' : (l === '结束' || low === 'end') ? 'end' : 'process';
-    const prev = state.nodes[state.nodes.length - 1];
+    const prev = [...state.nodes].reverse().find(m => m.type !== 'exclude');
     addNode(type, l, prev?.type === 'decision' ? t('yes') : '');
   });
   $('#bulk').value = '';
